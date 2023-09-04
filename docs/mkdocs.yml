@@ -1,3 +1,57 @@
-site_name: My Docs
+site_name: py-directus
+
+
 theme:
+  logo: assets/logo.svg
+  favicon: assets/intime_plus_Icon_BW.svg
   name: material
+  font:
+    text: Nunito
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - header.autohide
+    - navigation.top
+  palette:
+    - scheme: default
+      primary: deep blue
+      accent: grey
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to dark mode
+
+    - scheme: slate
+      primary: deep blue
+      accent: grey
+      toggle:
+        icon: material/weather-night
+        name: Switch to system preference
+extra:
+  social:
+    - icon: fontawesome/solid/globe
+      link: https://orbitsystems.gr
+      name: Find us on the web
+    - icon: fontawesome/brands/facebook
+      link: https://www.facebook.com/orbitsystems.gr
+      name: Find us on Facebook
+    - icon: fontawesome/brands/instagram
+      link: https://www.instagram.com/orbit.systems/
+      name: Find us on Instagram
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/company/orbit-systems-greece
+      name: Find us on LinkedIn
+  generator: false
+
+copyright: Copyright © 2023 Orbit Systems
+
+plugins:
+  - search
+markdown_extensions:
+  - abbr
+  - attr_list
+  - pymdownx.snippets
+
+extra_css:
+  - stylesheets/extra.css
+nav:
+  - "index.md"
