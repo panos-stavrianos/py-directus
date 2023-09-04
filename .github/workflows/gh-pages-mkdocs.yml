@@ -22,19 +22,25 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # Build job
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Setup Pages
-        uses: actions/configure-pages@v3
-      - name: MkDocs builder
-        uses: moonpathbg/mkdocs_builder@latest
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
         with:
-          source: "./docs/"
-          target: "./_site/"
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v2
+          python-version: 3.11
+
+      - name: Install dependencies
+        run: |
+          pip install mkdocs
+          pip install mkdocs-material  # You can use a different theme if needed
+
+      - name: Build MkDocs
+        run: mkdocs build --config-file ./docs/mkdocs.yml  # Specify the path to your MkDocs configuration file
 
   # Deployment job
   deploy:
