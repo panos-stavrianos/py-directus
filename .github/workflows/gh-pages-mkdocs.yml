@@ -39,17 +39,7 @@ jobs:
           pip install mkdocs
           pip install mkdocs-material  # You can use a different theme if needed
 
-      - name: Build MkDocs
-        run: mkdocs build --config-file ./docs/mkdocs.yml  # Specify the path to your MkDocs configuration file
+      - name: Deploy MkDocs
+        run: mkdocs gh-deploy --force --config-file ./docs/mkdocs.yml
 
-  # Deployment job
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v2
+
