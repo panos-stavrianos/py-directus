@@ -7,7 +7,7 @@ site_description: A Python wrapper for the Directus API
 
 theme:
   logo: assets/logo.svg
-  favicon: assets/intime_plus_Icon_BW.svg
+  favicon: assets/logo.svg
   name: material
   icon:
     admonition:
