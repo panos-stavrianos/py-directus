@@ -38,7 +38,6 @@ takes keyword arguments, where the key is the field name and operator, and the v
 !!! info ""
     If you don't specify an operator, the `__eq` operator will be used.
 
-
 See the full list of operators [here](#full-list-of-operators).
  
 ### Logical Operators
@@ -64,7 +63,7 @@ F(age=23) & (F(name="John") | F(name="Jane"))
 
 In order to debug a filter, you can use the `get_explanation` method.
 
-``` python
+``` python hl_lines="4"
 from py_directus import F
 # age equals 23 and (name equals John or name equals Jane)
 my_filter = F(age=23) & (F(name="John") | F(name="Jane"))
