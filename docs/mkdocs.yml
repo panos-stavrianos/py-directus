@@ -1,6 +1,9 @@
 site_name: py-directus
 repo_url: https://github.com/panos-stavrianos/py-directus
 repo_name: panos-stavrianos/py-directus
+site_author: Panos Stavrianos
+site_description: A Python wrapper for the Directus API
+
 
 theme:
   logo: assets/logo.svg
