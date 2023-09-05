@@ -50,8 +50,15 @@ markdown_extensions:
   - abbr
   - attr_list
   - pymdownx.snippets
+  - pymdownx.details
+  - admonition
+  - attr_list
+  - pymdownx.highlight:
+      use_pygments: true
+      auto_title: true
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.smartsymbols
 
 extra_css:
   - stylesheets/extra.css
-nav:
-  - "index.md"
