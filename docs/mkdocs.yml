@@ -1,5 +1,6 @@
 site_name: py-directus
-
+repo_url: https://github.com/panos-stavrianos/py-directus
+repo_name: panos-stavrianos/py-directus
 
 theme:
   logo: assets/logo.svg
