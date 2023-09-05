@@ -12,6 +12,8 @@ theme:
     - navigation.tracking
     - header.autohide
     - navigation.top
+    - content.code.copy
+
   palette:
     - scheme: default
       primary: deep blue
