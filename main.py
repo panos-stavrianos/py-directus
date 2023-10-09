@@ -1,27 +1,11 @@
-import json
+from py_directus.filter import F
 
-from rich import print  # noqa
 
-from py_directus import F
+if __name__ == "__main__":
+    q1 = F(pools__name__eq="panos", hair__eq="brown")
+    q2 = F(age__starts_with=23)
+    q3 = F(job="programmer")
 
-# age equals 23
-F(age=23)
+    combined_query = q1 | q3 | q3 | q2
 
-# age greater than 23
-F(age__gt=23)
-
-# age greater than and equal to 23
-F(name__contains="John", age__gt=23)
-
-### Combine filters
-
-# age equals 23 and name equals John
-F(age=23) & F(name="John")
-
-# age equals 23 or name equals John
-F(age=23) | F(name="John")
-
-# age equals 23 and (name equals John or name equals Jane)
-my_filter = F(age=23) & (F(name="John") | F(name="Jane"))
-
-print(json.dumps(my_filter.query, indent=2))
+    combined_query.print_explanation()

@@ -1,2 +1,10 @@
+# Development
 venv/
 .idea/
+.vscode/
+
+# Cache
+__pycache__/
+
+# Environment
+.env

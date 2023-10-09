@@ -3,56 +3,30 @@ import json
 from rich import print  # noqa
 from rich.console import Console  # noqa
 
-operators = {
-    "_eq": "Equals",
-    "_neq": "Doesn't equal",
-    "_lt": "Less than",
-    "_lte": "Less than or equal to",
-    "_gt": "Greater than",
-    "_gte": "Greater than or equal to",
-    "_in": "Is one of",
-    "_nin": "Is not one of",
-    "_null": "Is null",
-    "_nnull": "Isn't null",
-    "_contains": "Contains",
-    "_icontains": "Contains case-insensitive",
-    "_ncontains": "Doesn't contain",
-    "_starts_with": "Starts with",
-    "_istarts_with": "Starts with case-insensitive",
-    "_nstarts_with": "Doesn't start with",
-    "_nistarts_with": "Doesn't start with case-insensitive",
-    "_ends_with": "Ends with",
-    "_iends_with": "Ends with case-insensitive",
-    "_nends_with": "Doesn't end with",
-    "_niends_with": "Doesn't end with case-insensitive",
-    "_between": "Is between",
-    "_nbetween": "Isn't between",
-    "_empty": "Is empty",
-    "_nempty": "Isn't empty",
-    "_intersects": "Intersects",
-    "_nintersects": "Doesn't intersect",
-    "_intersects_bbox": "Intersects Bounding box",
-    "_nintersects_bbox": "Doesn't intersect bounding box",
-    "_and": "AND",
-    "_or": "OR",
-}
+from py_directus.operators import FILTER_OPERATORS
 
 
 class F:
+    """
+    Filter field.
+    """
 
     def __init__(self, **kwargs):
-
         # Initialize the query as an empty dictionary
         self.query = {}
+
         # Parse keyword arguments into query format
         for key, value in kwargs.items():
             field, operator = F.parse_key(key)
+
             if not field:  # its a logical operator
                 self.query[operator] = value
                 continue
+
             if field not in self.query:
                 self.query[field] = {}
             self.query[field][operator] = value
+
         if len(kwargs.items()) > 1:
             inner_queries = []
             for key, value in kwargs.items():
@@ -63,7 +37,7 @@ class F:
     def parse_key(key):
         field = None
         operator = None
-        for _operator in operators:
+        for _operator in FILTER_OPERATORS:
             if key.endswith("_" + _operator):
                 field = key[:-len("_" + _operator)]
                 operator = _operator
@@ -90,15 +64,18 @@ class F:
     def __str__(self):
         return f"\n{json.dumps(self.query, indent=2)}\n"
 
+    def __json__(self):
+        return json.dumps(self.query, indent=2)
+
     def convert_query_to_string(self, input_dict):
         if "_or" in input_dict or "_and" in input_dict:
             key = "_or" if "_or" in input_dict else "_and"
             op_list = input_dict[key]
-            return "(" + f"{operators[key]}".join([self.convert_query_to_string(subdict) for subdict in op_list]) + ")"
+            return "(" + f"{FILTER_OPERATORS[key]}".join([self.convert_query_to_string(subdict) for subdict in op_list]) + ")"
         else:
             key, value = list(input_dict.items())[0]
             if isinstance(value, dict):
-                inner_str = " ".join([f"{operators[k]} {v}" for k, v in value.items()])
+                inner_str = " ".join([f"{FILTER_OPERATORS[k]} {v}" for k, v in value.items()])
 
                 return f"({key} {inner_str})"
 
@@ -137,13 +114,3 @@ class F:
                 continue
             count_tabs = i.count(tab_char)
             console.print(i, style=f"color({count_tabs})", highlight=False)
-
-
-if __name__ == '__main__':
-    q1 = F(pools__name__eq="panos", hair__eq="brown")
-    q2 = F(age__starts_with=23)
-    q3 = F(job='programmer')
-
-    combined_query = q1 | q3 | q3 | q2
-
-    combined_query.print_explanation()
