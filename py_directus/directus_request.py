@@ -14,12 +14,13 @@ class DirectusRequest:
     Class to manage request to the Directus API.
     """
 
-    def __init__(self, directus: "Directus", collection: str, collection_class=None):
+    def __init__(self, directus: "Directus", collection: str, collection_class: str | None=None):
         json_fix.fix_it()
+
         self.directus: "Directus" = directus
         self.collection: str = collection
         self.params: dict = {}
-        self.collection_class = collection_class
+        self.collection_class: None | str = collection_class
 
     @property
     def uri(self):
@@ -138,33 +139,43 @@ class DirectusRequest:
             raise ValueError(f"Method '{method}' not supported")
         return DirectusResponse(response, query=self.params, collection=self.collection_class)
 
-    def create_one(self, item: dict) -> DirectusResponse:
-        response = self.directus.connection.post(self.uri, json=item, auth=self.directus.auth)
-        return DirectusResponse(response, collection=self.collection_class)
+    def create(self, items: dict | list[dict]) -> DirectusResponse:
+        assert isinstance(items, (dict, list))
 
-    def create_many(self, items: list[dict]) -> DirectusResponse:
         response = self.directus.connection.post(self.uri, json=items, auth=self.directus.auth)
         return DirectusResponse(response, collection=self.collection_class)
 
-    def update_one(self, id: int | str | None, item: dict) -> DirectusResponse:
-        if id is None:
-            response = self.directus.connection.patch(self.uri, json=item, auth=self.directus.auth)
-        else:
-            response = self.directus.connection.patch(f'{self.uri}/{id}', json=item, auth=self.directus.auth)
-        return DirectusResponse(response, collection=self.collection_class)
+    def update(self, ids: int | str | None | list[int | str], items: dict | list) -> DirectusResponse:
+        if isinstance(ids, (int, str, None)) and isinstance(items, dict):
+            if ids is None:
+                response = self.directus.connection.patch(self.uri, json=items, auth=self.directus.auth)
+            else:
+                response = self.directus.connection.patch(f"{self.uri}/{ids}", json=items, auth=self.directus.auth)
+            return DirectusResponse(response, collection=self.collection_class)
+        elif isinstance(ids, list) and isinstance(items, list):
+            payload = {
+                "keys": ids,
+                "data": items
+            }
+            response = self.directus.connection.patch(self.uri, json=payload, auth=self.directus.auth)
+            return DirectusResponse(response, collection=self.collection_class)
+        
+        raise TypeError(
+            f"This method supports the following argument pairs: \n"
+            f"ids: int | str | None, items: dict\n"
+            f"ids: list[int | str], items: list\n"
+            f"You provided: ids={type(ids)}, items={type(items)}"
+        )
 
-    def update_many(self, ids: list[int | str], items) -> DirectusResponse:
-        payload = {
-            "keys": ids,
-            "data": items
-        }
-        response = self.directus.connection.patch(self.uri, json=payload, auth=self.directus.auth)
-        return DirectusResponse(response, collection=self.collection_class)
+    def delete(self, ids: int | str | list[int | str]) -> DirectusResponse:
+        if isinstance(ids, (int, str)):
+            response = self.directus.connection.delete(f'{self.uri}/{ids}', auth=self.directus.auth)
+            return DirectusResponse(response, collection=self.collection_class)
+        elif isinstance(ids, list):
+            response = self.directus.connection.delete(self.uri, json=ids, auth=self.directus.auth)
+            return DirectusResponse(response, collection=self.collection_class)
 
-    def delete_one(self, id: int | str) -> DirectusResponse:
-        response = self.directus.connection.delete(f'{self.uri}/{id}', auth=self.directus.auth)
-        return DirectusResponse(response, collection=self.collection_class)
-
-    def delete_many(self, ids: list[int | str]) -> DirectusResponse:
-        response = self.directus.connection.delete(self.uri, json=ids, auth=self.directus.auth)
-        return DirectusResponse(response, collection=self.collection_class)
+        raise TypeError(
+            f"The ids argument must be one of the following types: int | str | list[int | str]\n"
+            f"You provided: {ids}"
+        )

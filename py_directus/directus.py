@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import inspect
 import datetime
-from typing import Optional
+from typing import Optional, Type
 
 from httpx import Client, Auth
+from pydantic import BaseModel
 
 from py_directus.directus_request import DirectusRequest
 from py_directus.directus_response import DirectusResponse
@@ -46,12 +48,24 @@ class Directus:
         if self.email and self.password:
             self.login()
 
-    def collection(self, directus_collection) -> DirectusRequest:
-        assert directus_collection.Config.collection is not None
-        return self.items(directus_collection.Config.collection, directus_collection)
+    def collection(self, collection: Type[BaseModel] | str) -> DirectusRequest:
+        """
+        Set collection to be used.
+        """
 
-    def items(self, collection, directus_collection=None) -> DirectusRequest:
-        return DirectusRequest(self, collection, directus_collection)
+        if inspect.isclass(collection):
+            assert issubclass(collection, BaseModel), (
+                f"The provided collection model must be a subclass of pydantic.BaseModel"
+            )
+            assert collection.Config.collection is not None
+            return DirectusRequest(self, collection.Config.collection, collection)
+        elif isinstance(collection, str):
+            return DirectusRequest(self, collection, None)
+
+        raise TypeError(
+            f"The `collection` argument must be either a string or a subclass of the pydantic.BaseModel class.\n"
+            f"You gave: {collection}"
+        )
 
     def read_me(self):
         return DirectusRequest(self, "directus_users").read("me")
@@ -132,10 +146,10 @@ class Directus:
         self.connection.auth = None
         return response.status_code == 200
 
-    def close_session(self):
+    def close_connection(self):
         self.connection.close()
 
     def __exit__(self, *args):
         # Exception handling here
         self.logout()
-        self.close_session()
+        self.close_connection()
