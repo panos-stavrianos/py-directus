@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING, Type
 
 import json_fix
+from pydantic import BaseModel
 
 from py_directus.directus_response import DirectusResponse
 from py_directus.filter import F
@@ -17,7 +18,7 @@ class DirectusRequest:
     Class to manage request to the Directus API.
     """
 
-    def __init__(self, directus: Directus, collection: str, collection_class: str | None = None):
+    def __init__(self, directus: Directus, collection: str, collection_class: Type[BaseModel] | str | None = None):
         json_fix.fix_it()
 
         self.directus: Directus = directus

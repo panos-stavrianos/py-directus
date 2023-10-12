@@ -89,10 +89,10 @@ class Directus:
         return response_obj
 
     def update_settings(self, data):
-        return DirectusRequest(self, "directus_settings").update_one(None, data)
+        return DirectusRequest(self, "directus_settings").update(None, data)
 
     async def read_translations(self) -> dict[str, dict[str, str]]:
-        items = await self.items("translations").fields(
+        items = await self.collection("translations").fields(
             'key', 'translations.languages_code', 'translations.translation'
         ).read().items
         return parse_translations(items)
@@ -102,7 +102,7 @@ class Directus:
         return response
 
     def create_translations(self, keys: list[str]):
-        return self.items("translations").create_many([{"key": key} for key in keys])
+        return self.collection("translations").create([{"key": key} for key in keys])
 
     async def __aenter__(self):
         return self
@@ -123,17 +123,8 @@ class Directus:
             self._user = User(**user.item)
         return self._user
 
-    async def login(self):
-
-        if self.static_token:
-            self._token = self.static_token
-            return
-
-        url = f'{self.url}/auth/login'
-        payload = {
-            'email': self.email,
-            'password': self.password
-        }
+    async def auth_request(self, endpoint, payload):
+        url = f'{self.url}/{endpoint}'
 
         r = await self.connection.post(url, json=payload)
         response = DirectusResponse(r)
@@ -145,18 +136,24 @@ class Directus:
         )
         self.auth = BearerAuth(self._token)
 
+    async def login(self):
+        endpoint = 'auth/login'
+        if self.static_token:
+            self._token = self.static_token
+            return
+        payload = {
+            'email': self.email,
+            'password': self.password
+        }
+        await self.auth_request(endpoint, payload)
+
     async def refresh(self):
-        url = f"{self.url}/auth/refresh"
+        endpoint = "auth/refresh"
         payload = {
             'refresh_token': self.refresh_token,
             "mode": "json"
         }
-        r = await self.connection.post(url, json=payload)
-        response = DirectusResponse(r)
-        self.token = response.item['access_token']
-        self.refresh_token = response.item['refresh_token']
-        self.expires = response.item['expires']
-        # todo: update expiration time
+        await self.auth_request(endpoint, payload)
 
     async def logout(self):
         url = f"{self.url}/auth/logout"
