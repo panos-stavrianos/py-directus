@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
 import json_fix
 
@@ -8,16 +8,19 @@ from py_directus.directus_response import DirectusResponse
 from py_directus.filter import F
 from py_directus.operators import AggregationOperators
 
+if TYPE_CHECKING:
+    from py_directus import Directus
+
 
 class DirectusRequest:
     """
     Class to manage request to the Directus API.
     """
 
-    def __init__(self, directus: "Directus", collection: str, collection_class: str | None = None):
+    def __init__(self, directus: Directus, collection: str, collection_class: str | None = None):
         json_fix.fix_it()
 
-        self.directus: "Directus" = directus
+        self.directus: Directus = directus
         self.collection: str = collection
         self.params: dict = {}
         self.collection_class: None | str = collection_class
