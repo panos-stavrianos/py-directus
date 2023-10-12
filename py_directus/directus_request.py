@@ -4,9 +4,9 @@ from typing import Optional
 
 import json_fix
 
-from py_directus.operators import AggregationOperators
-from py_directus.filter import F
 from py_directus.directus_response import DirectusResponse
+from py_directus.filter import F
+from py_directus.operators import AggregationOperators
 
 
 class DirectusRequest:
@@ -14,7 +14,7 @@ class DirectusRequest:
     Class to manage request to the Directus API.
     """
 
-    def __init__(self, directus: "Directus", collection: str, collection_class: str | None=None):
+    def __init__(self, directus: "Directus", collection: str, collection_class: str | None = None):
         json_fix.fix_it()
 
         self.directus: "Directus" = directus
@@ -128,7 +128,7 @@ class DirectusRequest:
         method = "get" if id is not None else method
         if method == "search":
             response = await self.directus.connection.request(
-                "search", self.uri, 
+                "search", self.uri,
                 json={"query": self.params},
                 auth=self.directus.auth
             )
@@ -150,7 +150,8 @@ class DirectusRequest:
             if ids is None:
                 response = await self.directus.connection.patch(self.uri, json=items, auth=self.directus.auth)
             else:
-                response = await self.directus.connection.patch(f"{self.uri}/{ids}", json=items, auth=self.directus.auth)
+                response = await self.directus.connection.patch(f"{self.uri}/{ids}", json=items,
+                                                                auth=self.directus.auth)
             return DirectusResponse(response, collection=self.collection_class)
         elif isinstance(ids, list) and isinstance(items, list):
             payload = {
@@ -159,7 +160,7 @@ class DirectusRequest:
             }
             response = await self.directus.connection.patch(self.uri, json=payload, auth=self.directus.auth)
             return DirectusResponse(response, collection=self.collection_class)
-        
+
         raise TypeError(
             f"This method supports the following argument pairs: \n"
             f"ids: int | str | None, items: dict\n"

@@ -1,14 +1,14 @@
-import inspect
 import datetime
+import inspect
 from typing import Optional, Type
 
 from httpx import AsyncClient, Auth
 from pydantic import BaseModel
 
-from py_directus.models import User
-from py_directus.utils import parse_translations
 from py_directus.directus_request import DirectusRequest
 from py_directus.directus_response import DirectusResponse
+from py_directus.models import User
+from py_directus.utils import parse_translations
 
 
 class BearerAuth(Auth):
@@ -117,9 +117,10 @@ class Directus:
         self.auth = BearerAuth(self._token)
 
     @property
-    def user(self):
+    async def user(self):
         if self._user is None:
-            self._user = User(**self.read_me().item)
+            user = await self.read_me()
+            self._user = User(**user.item)
         return self._user
 
     async def login(self):
@@ -140,7 +141,7 @@ class Directus:
         self.refresh_token = response.item['refresh_token']
         self.expires = response.item['expires']  # in milliseconds
         self.expiration_time: datetime.datetime = (
-            datetime.datetime.now() + datetime.timedelta(milliseconds=self.expires)
+                datetime.datetime.now() + datetime.timedelta(milliseconds=self.expires)
         )
         self.auth = BearerAuth(self._token)
 
@@ -161,13 +162,17 @@ class Directus:
         url = f"{self.url}/auth/logout"
         response = await self.connection.post(url)
         self.connection.auth = None
-        # todo: nullify token, refresh_token, expires, expiration_time
+        self._token = None
+        self.refresh_token = None
+        self.expires = None
+        self.expiration_time = None
         return response.status_code == 200
 
     async def close_connection(self):
         await self.connection.aclose()
 
     async def __aexit__(self, *args):
+        print("Closing connection")
         # Exception handling here
         await self.logout()
         await self.close_connection()
