@@ -155,11 +155,13 @@ class Directus:
         self.token = response.item['access_token']
         self.refresh_token = response.item['refresh_token']
         self.expires = response.item['expires']
+        # todo: update expiration time
 
     async def logout(self):
         url = f"{self.url}/auth/logout"
         response = await self.connection.post(url)
         self.connection.auth = None
+        # todo: nullify token, refresh_token, expires, expiration_time
         return response.status_code == 200
 
     async def close_connection(self):
