@@ -4,9 +4,9 @@ from typing import Optional
 
 import json_fix
 
-from py_directus.directus_response import DirectusResponse
 from py_directus.operators import AggregationOperators
 from py_directus.filter import F
+from py_directus.directus_response import DirectusResponse
 
 
 class DirectusRequest:
@@ -124,40 +124,40 @@ class DirectusRequest:
     #         raise ValueError(f"Method '{method}' not supported")
     #     return DirectusResponse(response, self.params)
 
-    def read(self, id: Optional[int | str] = None, method="search") -> DirectusResponse:
+    async def read(self, id: Optional[int | str] = None, method="search") -> DirectusResponse:
         method = "get" if id is not None else method
         if method == "search":
-            response = self.directus.connection.request(
+            response = await self.directus.connection.request(
                 "search", self.uri, 
                 json={"query": self.params},
                 auth=self.directus.auth
             )
         elif method == "get":
             url = f'{self.uri}/{id}' if id is not None else self.uri
-            response = self.directus.connection.get(url, params=self.params, auth=self.directus.auth)
+            response = await self.directus.connection.get(url, params=self.params, auth=self.directus.auth)
         else:
             raise ValueError(f"Method '{method}' not supported")
         return DirectusResponse(response, query=self.params, collection=self.collection_class)
 
-    def create(self, items: dict | list[dict]) -> DirectusResponse:
+    async def create(self, items: dict | list[dict]) -> DirectusResponse:
         assert isinstance(items, (dict, list))
 
-        response = self.directus.connection.post(self.uri, json=items, auth=self.directus.auth)
+        response = await self.directus.connection.post(self.uri, json=items, auth=self.directus.auth)
         return DirectusResponse(response, collection=self.collection_class)
 
-    def update(self, ids: int | str | None | list[int | str], items: dict | list) -> DirectusResponse:
+    async def update(self, ids: int | str | None | list[int | str], items: dict | list) -> DirectusResponse:
         if isinstance(ids, (int, str, None)) and isinstance(items, dict):
             if ids is None:
-                response = self.directus.connection.patch(self.uri, json=items, auth=self.directus.auth)
+                response = await self.directus.connection.patch(self.uri, json=items, auth=self.directus.auth)
             else:
-                response = self.directus.connection.patch(f"{self.uri}/{ids}", json=items, auth=self.directus.auth)
+                response = await self.directus.connection.patch(f"{self.uri}/{ids}", json=items, auth=self.directus.auth)
             return DirectusResponse(response, collection=self.collection_class)
         elif isinstance(ids, list) and isinstance(items, list):
             payload = {
                 "keys": ids,
                 "data": items
             }
-            response = self.directus.connection.patch(self.uri, json=payload, auth=self.directus.auth)
+            response = await self.directus.connection.patch(self.uri, json=payload, auth=self.directus.auth)
             return DirectusResponse(response, collection=self.collection_class)
         
         raise TypeError(
@@ -167,12 +167,12 @@ class DirectusRequest:
             f"You provided: ids={type(ids)}, items={type(items)}"
         )
 
-    def delete(self, ids: int | str | list[int | str]) -> DirectusResponse:
+    async def delete(self, ids: int | str | list[int | str]) -> DirectusResponse:
         if isinstance(ids, (int, str)):
-            response = self.directus.connection.delete(f'{self.uri}/{ids}', auth=self.directus.auth)
+            response = await self.directus.connection.delete(f'{self.uri}/{ids}', auth=self.directus.auth)
             return DirectusResponse(response, collection=self.collection_class)
         elif isinstance(ids, list):
-            response = self.directus.connection.delete(self.uri, json=ids, auth=self.directus.auth)
+            response = await self.directus.connection.delete(self.uri, json=ids, auth=self.directus.auth)
             return DirectusResponse(response, collection=self.collection_class)
 
         raise TypeError(

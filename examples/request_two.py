@@ -23,16 +23,12 @@ async def get_model(directus_client):
 
 
 async def main():
-    # directus = await Directus.create(config["CONN_URI"], email=config["CONN_EMAIL"], password=config["CONN_PASSWORD"])
-    directus = await Directus(config["CONN_URI"], email=config["CONN_EMAIL"], password=config["CONN_PASSWORD"])
+    async with Directus(config["CONN_URI"], email=config["CONN_EMAIL"], password=config["CONN_PASSWORD"]) as directus:
+        # Manually run login
+        await directus.login()
 
-    # Filtering
-    await asyncio.gather(get_str(directus), get_model(directus))
-
-    await directus.logout()
-
-    # Manually close connection
-    await directus.close_connection()
+        # Filtering
+        await asyncio.gather(get_str(directus), get_model(directus))
 
 
 if __name__ == "__main__":

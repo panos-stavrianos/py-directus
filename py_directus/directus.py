@@ -1,16 +1,14 @@
-from __future__ import annotations
-
 import inspect
 import datetime
 from typing import Optional, Type
 
-from httpx import Client, Auth
+from httpx import AsyncClient, Auth
 from pydantic import BaseModel
 
-from py_directus.directus_request import DirectusRequest
-from py_directus.directus_response import DirectusResponse
 from py_directus.models import User
 from py_directus.utils import parse_translations
+from py_directus.directus_request import DirectusRequest
+from py_directus.directus_response import DirectusResponse
 
 
 class BearerAuth(Auth):
@@ -25,11 +23,11 @@ class BearerAuth(Auth):
 
 class Directus:
     """
-    Client for Directus API communication.
+    Asynchronous Client for Directus API communication.
     """
 
     def __init__(self, url, email=None, password=None, token=None, refresh_token=None,
-                 connection: Client = None):
+                 connection: AsyncClient = None):
         self.expires = None
         self.expiration_time = None
         self.refresh_token = refresh_token
@@ -41,12 +39,27 @@ class Directus:
         self.email = email
         self.password = password
         self.static_token = token
-        self.connection = connection or Client()
+        self.connection = connection or AsyncClient()
         self.auth = BearerAuth(self._token)
         self.token = self.static_token or None
 
-        if self.email and self.password:
-            self.login()
+    def __await__(self):
+        async def closure():
+            # Perform login when credentials are present and no token
+            if self.email and self.password and not self._token:
+                await self.login()
+            return self
+
+        return closure().__await__()
+
+    # @classmethod
+    # async def create(cls, url, email=None, password=None, token=None, refresh_token=None, 
+    #                  connection: AsyncClient = None):
+    #     client = cls(url, email, password, token, refresh_token, connection)
+
+    #     if client.email and client.password:
+    #         await client.login()
+    #     return client
 
     def collection(self, collection: Type[BaseModel] | str) -> DirectusRequest:
         """
@@ -67,28 +80,31 @@ class Directus:
             f"You gave: {collection}"
         )
 
-    def read_me(self):
-        return DirectusRequest(self, "directus_users").read("me")
+    async def read_me(self):
+        response_obj = await DirectusRequest(self, "directus_users").read("me")
+        return response_obj
 
-    def read_settings(self):
-        return DirectusRequest(self, "directus_settings").read(method='get')
+    async def read_settings(self):
+        response_obj = await DirectusRequest(self, "directus_settings").read(method='get')
+        return response_obj
 
     def update_settings(self, data):
         return DirectusRequest(self, "directus_settings").update_one(None, data)
 
-    def read_translations(self) -> dict[str, dict[str, str]]:
-        items = self.items("translations").fields(
+    async def read_translations(self) -> dict[str, dict[str, str]]:
+        items = await self.items("translations").fields(
             'key', 'translations.languages_code', 'translations.translation'
         ).read().items
         return parse_translations(items)
 
-    def download_file(self, file_id):
-        return self.connection.get(f'{self.url}/assets/{file_id}')
+    async def download_file(self, file_id):
+        response = await self.connection.get(f'{self.url}/assets/{file_id}')
+        return response
 
     def create_translations(self, keys: list[str]):
         return self.items("translations").create_many([{"key": key} for key in keys])
 
-    def __enter__(self):
+    async def __aenter__(self):
         return self
 
     @property
@@ -106,7 +122,7 @@ class Directus:
             self._user = User(**self.read_me().item)
         return self._user
 
-    def login(self):
+    async def login(self):
 
         if self.static_token:
             self._token = self.static_token
@@ -118,7 +134,7 @@ class Directus:
             'password': self.password
         }
 
-        r = self.connection.post(url, json=payload)
+        r = await self.connection.post(url, json=payload)
         response = DirectusResponse(r)
         self._token = response.item['access_token']
         self.refresh_token = response.item['refresh_token']
@@ -128,28 +144,28 @@ class Directus:
         )
         self.auth = BearerAuth(self._token)
 
-    def refresh(self):
-        url = f'{self.url}/auth/refresh'
+    async def refresh(self):
+        url = f"{self.url}/auth/refresh"
         payload = {
             'refresh_token': self.refresh_token,
             "mode": "json"
         }
-        r = self.connection.post(url, json=payload)
+        r = await self.connection.post(url, json=payload)
         response = DirectusResponse(r)
         self.token = response.item['access_token']
         self.refresh_token = response.item['refresh_token']
         self.expires = response.item['expires']
 
-    def logout(self):
-        url = f'{self.url}/auth/logout'
-        response = self.connection.post(url)
+    async def logout(self):
+        url = f"{self.url}/auth/logout"
+        response = await self.connection.post(url)
         self.connection.auth = None
         return response.status_code == 200
 
-    def close_connection(self):
-        self.connection.close()
+    async def close_connection(self):
+        await self.connection.aclose()
 
-    def __exit__(self, *args):
+    async def __aexit__(self, *args):
         # Exception handling here
-        self.logout()
-        self.close_connection()
+        await self.logout()
+        await self.close_connection()
