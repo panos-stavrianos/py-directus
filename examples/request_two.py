@@ -23,7 +23,7 @@ async def get_model(directus_client):
 
 
 async def main():
-    async with Directus(config["CONN_URI"], email=config["CONN_EMAIL"], password=config["CONN_PASSWORD"]) as directus:
+    async with Directus(config["DIRECTUS_URL"], email=config["DIRECTUS_EMAIL"], password=config["DIRECTUS_PASSWORD"]) as directus:
         # Manually run login
         await directus.login()
 

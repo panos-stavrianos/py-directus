@@ -23,8 +23,8 @@ async def get_model(directus_client):
 
 
 async def main():
-    # directus = await Directus.create(config["CONN_URI"], email=config["CONN_EMAIL"], password=config["CONN_PASSWORD"])
-    directus = await Directus(config["CONN_URI"], email=config["CONN_EMAIL"], password=config["CONN_PASSWORD"])
+    # directus = await Directus.create(config["DIRECTUS_URL"], email=config["DIRECTUS_EMAIL"], password=config["DIRECTUS_PASSWORD"])
+    directus = await Directus(config["DIRECTUS_URL"], email=config["DIRECTUS_EMAIL"], password=config["DIRECTUS_PASSWORD"])
 
     # Filtering
     await asyncio.gather(get_str(directus), get_model(directus))

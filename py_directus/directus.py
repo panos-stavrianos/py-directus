@@ -124,7 +124,7 @@ class Directus:
         return self._user
 
     async def auth_request(self, endpoint, payload):
-        url = f'{self.url}/{endpoint}'
+        url = f"{self.url}/{endpoint}"
 
         r = await self.connection.post(url, json=payload)
         response = DirectusResponse(r)
@@ -132,7 +132,7 @@ class Directus:
         self.refresh_token = response.item['refresh_token']
         self.expires = response.item['expires']  # in milliseconds
         self.expiration_time: datetime.datetime = (
-                datetime.datetime.now() + datetime.timedelta(milliseconds=self.expires)
+            datetime.datetime.now() + datetime.timedelta(milliseconds=self.expires)
         )
         self.auth = BearerAuth(self._token)
 

@@ -360,3 +360,17 @@ Run individual examples as such:
 ```shell
 python -m examples.<example_file_name>
 ```
+
+## Tests
+
+Run tests as such:
+
+```shell
+# All unit tests
+
+python -m unittest discover -s tests/unit
+
+# All integration tests
+
+python -m unittest discover -s tests/integration
+```
