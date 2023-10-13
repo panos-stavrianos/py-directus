@@ -24,7 +24,7 @@ class DirectusRequest:
         self.directus: Directus = directus
         self.collection: str = collection
         self.params: dict = {}
-        self.collection_class: None | str = collection_class
+        self.collection_class: None | str | Type[BaseModel] = collection_class
 
     @property
     def uri(self):
