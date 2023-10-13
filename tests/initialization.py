@@ -23,6 +23,7 @@ class TestInitialization(unittest.IsolatedAsyncioTestCase):
         self.assertIsNone(directus._token)
 
     async def test_login_context_manager(self):
+        print("IN ASYNC test_login_context_manager")
         async with await Directus(url, email=email, password=password) as directus:
             user = await directus.user
             print(user)
