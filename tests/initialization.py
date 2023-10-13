@@ -14,7 +14,7 @@ token = os.environ['DIRECTUS_TOKEN']
 
 class TestInitialization(unittest.IsolatedAsyncioTestCase):
     async def test_login(self):
-        print("Testing login 2")
+        print("Testing login 3")
         directus = await Directus(url, email=email, password=password)
         user = await directus.user
         print(user)
