@@ -30,10 +30,10 @@ class DirectusRequest:
     def uri(self):
         if "directus_" in self.collection:
             return f"{self.directus.url}/{self.collection.replace('directus_', '')}"
-        return f'{self.directus.url}/items/{self.collection}'
+        return f"{self.directus.url}/items/{self.collection}"
 
     def fields(self, *fields):
-        self.params['fields'] = ','.join(fields)
+        self.params['fields'] = ",".join(fields)
         return self
 
     def filter(self, *args, **filters):

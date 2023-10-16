@@ -1,27 +1,41 @@
 import json
 
-from rich import print  # noqa
+try:
+    from rich import print  # noqa
+except:
+    pass
 
 from py_directus import F
 
-# age equals 23
-F(age=23)
 
-# age greater than 23
-F(age__gt=23)
+if __name__ == "__main__":
+    """
+    See filter logic structure.
+    """
 
-# age greater than and equal to 23
-F(name__contains="John", age__gt=23)
+    # age equals 23
+    filter_attr = F(age=23)
+    print(f"Filter attribute equal: {filter_attr}")
 
-### Combine filters
+    # age greater than 23
+    filter_attr_gt = F(age__gt=23)
+    print(f"Filter attribute greater: {filter_attr_gt}")
 
-# age equals 23 and name equals John
-F(age=23) & F(name="John")
+    # age greater than and equal to 23
+    filter_multi_attr = F(name__contains="John", age__gt=23)
+    print(f"Multiple attribute filter: {filter_multi_attr}")
 
-# age equals 23 or name equals John
-F(age=23) | F(name="John")
+    ### Combine filters
 
-# age equals 23 and (name equals John or name equals Jane)
-my_filter = F(age=23) & (F(name="John") | F(name="Jane"))
+    # age equals 23 and name equals John
+    filter_comb_and = F(age=23) & F(name="John")
+    print(f"Combined filter AND: {filter_comb_and}")
 
-print(json.dumps(my_filter.query, indent=2))
+    # age equals 23 or name equals John
+    filter_comb_or = F(age=23) | F(name="John")
+    print(f"Combined filter OR: {filter_comb_or}")
+
+    # age equals 23 and (name equals John or name equals Jane)
+    complex_filter = F(age=23) & (F(name="John") | F(name="Jane"))
+
+    print(json.dumps(complex_filter.query, indent=2))

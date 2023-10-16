@@ -88,21 +88,28 @@ class Directus:
         response_obj = await DirectusRequest(self, "directus_settings").read(method='get')
         return response_obj
 
-    def update_settings(self, data):
-        return DirectusRequest(self, "directus_settings").update(None, data)
+    async def update_settings(self, data):
+        response_obj = await DirectusRequest(self, "directus_settings").update(None, data)
+        return response_obj
 
     async def read_translations(self) -> dict[str, dict[str, str]]:
+        """
+        NOTE: TO BE REDESIGNED
+        """
+
         items = await self.collection("translations").fields(
             'key', 'translations.languages_code', 'translations.translation'
         ).read().items
+
         return parse_translations(items)
+
+    async def create_translations(self, keys: list[str]):
+        response_obj = await self.collection("translations").create([{"key": key} for key in keys])
+        return response_obj
 
     async def download_file(self, file_id):
         response = await self.connection.get(f'{self.url}/assets/{file_id}')
         return response
-
-    def create_translations(self, keys: list[str]):
-        return self.collection("translations").create([{"key": key} for key in keys])
 
     async def __aenter__(self):
         return self
@@ -128,6 +135,7 @@ class Directus:
 
         r = await self.connection.post(url, json=payload)
         response = DirectusResponse(r)
+
         self._token = response.item['access_token']
         self.refresh_token = response.item['refresh_token']
         self.expires = response.item['expires']  # in milliseconds
@@ -137,10 +145,12 @@ class Directus:
         self.auth = BearerAuth(self._token)
 
     async def login(self):
-        endpoint = 'auth/login'
+        endpoint = "auth/login"
+
         if self.static_token:
             self._token = self.static_token
             return
+
         payload = {
             'email': self.email,
             'password': self.password
@@ -158,11 +168,13 @@ class Directus:
     async def logout(self):
         url = f"{self.url}/auth/logout"
         response = await self.connection.post(url)
+
         self.connection.auth = None
         self._token = None
         self.refresh_token = None
         self.expires = None
         self.expiration_time = None
+
         return response.status_code == 200
 
     async def close_connection(self):
