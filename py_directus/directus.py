@@ -1,8 +1,10 @@
+import os
 import datetime
 import inspect
+import magic
 from typing import Optional, Type
 
-from httpx import AsyncClient, Auth
+from httpx import AsyncClient, Auth, Response
 from pydantic import BaseModel
 
 from py_directus.directus_request import DirectusRequest
@@ -96,7 +98,6 @@ class Directus:
         """
         NOTE: TO BE REDESIGNED
         """
-
         items = await self.collection("translations").fields(
             'key', 'translations.languages_code', 'translations.translation'
         ).read().items
@@ -104,11 +105,37 @@ class Directus:
         return parse_translations(items)
 
     async def create_translations(self, keys: list[str]):
+        """
+        NOTE: TO BE REDESIGNED
+        """
         response_obj = await self.collection("translations").create([{"key": key} for key in keys])
         return response_obj
 
-    async def download_file(self, file_id):
-        response = await self.connection.get(f'{self.url}/assets/{file_id}')
+    async def download_file(self, file_id: str) -> Response:
+        url = f"{self.url}/assets/{file_id}"
+
+        response = await self.connection.get(url)
+
+        return response
+
+    async def upload_file(self, file_path: str) -> Response:
+        url = f"{self.url}/files"
+
+        # file name with extension
+        file_name = os.path.basename(file_path)
+        file_mime = magic.from_file(file_path, mime=True)
+
+        data = {
+            "title": os.path.splitext(file_name)[0],
+            # "folder": "foreign_key"
+        }
+
+        files = {
+            "file": (file_name, open(file_path, 'rb'), file_mime)
+        }
+
+        response = await self.connection.post(url, data=data, files=files, auth=self.auth)
+
         return response
 
     async def __aenter__(self):
@@ -165,7 +192,7 @@ class Directus:
         }
         await self.auth_request(endpoint, payload)
 
-    async def logout(self):
+    async def logout(self) -> bool:
         url = f"{self.url}/auth/logout"
         response = await self.connection.post(url)
 

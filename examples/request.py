@@ -29,6 +29,7 @@ async def main():
     # Filtering
     await asyncio.gather(get_str(directus), get_model(directus))
 
+    # Logout
     await directus.logout()
 
     # Manually close connection
