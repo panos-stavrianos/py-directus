@@ -28,10 +28,9 @@ theme:
   features:
     - navigation.instant
     - navigation.tracking
-    - header.autohide
     - navigation.top
+    - header.autohide
     - content.code.copy
-
   palette:
     - scheme: default
       primary: deep blue
