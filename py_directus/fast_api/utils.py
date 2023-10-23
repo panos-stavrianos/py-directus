@@ -45,10 +45,11 @@ class RoleToID:
 
     def __await__(self):
         async def closure():
-            # Perform login when credentials are present and no token
-            await directus_admin
-            roles = await directus_admin.collection(Role).read()
-            self.roles = {role.name: role.id for role in roles.items}
+            if getattr(self, "roles", None) is None:
+                # Perform login manually, because the global was instantiated without awaiting
+                await directus_admin
+                roles = await directus_admin.collection(Role).read()
+                self.roles = {role.name: role.id for role in roles.items}
             return self
 
         return closure().__await__()
