@@ -85,3 +85,25 @@ class TestClient(unittest.IsolatedAsyncioTestCase):
             self.assertIsNotNone(new_token)
 
             self.assertNotEqual(old_token, new_token)
+
+    async def test_me(self):
+        """
+        Check client 'me' method.
+        """
+        async with await Directus(self.url, email=self.email, password=self.password) as directus:
+            # Me
+            me_resp = await directus.me()
+            me_obj = me_resp.item
+
+            print(me_obj)
+
+    async def test_roles(self):
+        """
+        Check client 'roles' method.
+        """
+        async with await Directus(self.url, email=self.email, password=self.password) as directus:
+            # Roles
+            roles_resp = await directus.roles()
+            roles = roles_resp.items
+
+            print(roles)
