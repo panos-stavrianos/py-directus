@@ -1,4 +1,5 @@
 import os
+import re
 import datetime
 import inspect
 import magic
@@ -133,7 +134,17 @@ class Directus:
     async def download_file(self, file_id: str) -> Response:
         url = f"{self.url}/assets/{file_id}"
 
-        response = await self.connection.get(url)
+        response = await self.connection.get(url, params={"download": ""})
+
+        if response.status_code == 200:
+            # Get file name
+            d = response.headers['content-disposition']
+            fname = re.findall("filename=[\"\'](.+)[\"\']", d)
+            cln_fname = fname[0] if fname else file_id
+
+            # Create file from received data
+            with open(cln_fname, 'wb') as f:
+                f.write(response.content)
 
         return response
 
