@@ -128,7 +128,7 @@ class DirectusRequest:
     #         raise ValueError(f"Method '{method}' not supported")
     #     return DirectusResponse(response, self.params)
 
-    async def read(self, id: Optional[int | str] = None, method="search") -> DirectusResponse:
+    async def read(self, id: Optional[int | str] = None, method: str = "search") -> DirectusResponse:
         method = "get" if id is not None else method
         if method == "search":
             response = await self.directus.connection.request(

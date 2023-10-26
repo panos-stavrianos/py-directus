@@ -9,7 +9,7 @@ from pydantic import BaseModel
 
 from py_directus.directus_request import DirectusRequest
 from py_directus.directus_response import DirectusResponse
-from py_directus.models import User
+from py_directus.models import Role, User
 from py_directus.utils import parse_translations
 
 
@@ -28,8 +28,10 @@ class Directus:
     Asynchronous Client for Directus API communication.
     """
 
-    def __init__(self, url, email=None, password=None, token=None, refresh_token=None,
-                 connection: AsyncClient = None):
+    def __init__(
+        self, url: str, email: str = None, password: str = None, token: str = None, refresh_token: str = None,
+        connection: AsyncClient = None, user_model: Type[User] = User
+    ):
         self.expires = None
         self.expiration_time = None
         self.refresh_token = refresh_token
@@ -37,6 +39,7 @@ class Directus:
 
         self._token: Optional[str] = None
         self._user: User | None = None
+        self._user_model: Type[User] = user_model
 
         self.email = email
         self.password = password
@@ -82,15 +85,31 @@ class Directus:
             f"You gave: {collection}"
         )
 
-    async def read_me(self):
-        response_obj = await DirectusRequest(self, "directus_users").read("me")
+    async def me(self, user_model: Type[User] | str | None = None) -> DirectusResponse:
+        """
+        Retrieve logged in user's information.
+        """
+
+        if not user_model:
+            user_model = self._user_model
+
+        response_obj = await self.collection(user_model).read("me")
+
         return response_obj
 
-    async def read_settings(self):
+    async def roles(self) -> DirectusResponse:
+        """
+        Retrieve list of roles in system.
+        """
+
+        response_obj = await self.collection(Role).read()
+        return response_obj
+
+    async def read_settings(self) -> DirectusResponse:
         response_obj = await DirectusRequest(self, "directus_settings").read(method='get')
         return response_obj
 
-    async def update_settings(self, data):
+    async def update_settings(self, data) -> DirectusResponse:
         response_obj = await DirectusRequest(self, "directus_settings").update(None, data)
         return response_obj
 
@@ -153,8 +172,8 @@ class Directus:
     @property
     async def user(self):
         if self._user is None:
-            user = await self.read_me()
-            self._user = User(**user.item)
+            user = await self.me()
+            self._user = user.item
         return self._user
 
     async def auth_request(self, endpoint, payload):

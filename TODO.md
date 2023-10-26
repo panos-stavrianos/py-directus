@@ -95,6 +95,19 @@ from models
 directus.collection(Language)
 ```
 
+> Implementation Changes
+
+```python
+directus.collection('languages')
+
+# OR
+
+import Language
+from models
+
+directus.collection(Language)
+```
+
 ### Retrieve items
 
 If you have used the `items` method, you get a dict or a list of dicts. If you have used the `collection` method, you
@@ -108,6 +121,18 @@ item of the list.
 # dict
 languages: list[dict] = directus.items('languages').read().items
 first_language: dict = directus.items('languages').read().item
+
+# pydantic model
+languages: list[Language] = directus.collection(Language).read().items
+first_language: Language = directus.collection(Language).read().item
+```
+
+> Implementation Changes
+
+```python
+# dict
+languages: list[dict] = directus.collection('languages').read().items
+first_language: dict = directus.collection('languages').read().item
 
 # pydantic model
 languages: list[Language] = directus.collection(Language).read().items
@@ -143,6 +168,23 @@ user: User = directus.me(User)
 directus = Directus(url=url, user_model=User)
 ```
 
+> Implementation Changes
+
+```python
+from models import User
+
+from py_directus import DirectusUser
+
+user: DirectusUser = directus.me().item
+user: dict = directus.me().item_as_dict
+
+# or if you have overridden the User model
+user: User = directus.me(User).item
+
+# you can also declare the User model in the Directus initialization
+directus = Directus(url=url, user_model=User)
+```
+
 ### Roles
 
 Get all roles
@@ -151,6 +193,14 @@ Get all roles
 from py_directus import DirectusRole
 
 roles: list[DirectusRole] = directus.roles()
+```
+
+> Implementation Changes
+
+```python
+from py_directus.models import DirectusRole
+
+roles: list[DirectusRole] = directus.roles().items
 ```
 
 ### FastApi
