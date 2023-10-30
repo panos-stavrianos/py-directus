@@ -19,20 +19,27 @@ class TestRequest(unittest.IsolatedAsyncioTestCase):
     Test directus request methods.
     """
 
+    @classmethod
+    def setUpClass(cls):
+        """
+        Define constants on class before before running tests in the class.
+        """
+
+        cls.url = os.environ['DIRECTUS_URL']
+        cls.email = os.environ['DIRECTUS_EMAIL']
+        cls.password = os.environ['DIRECTUS_PASSWORD']
+        cls.token = os.environ['DIRECTUS_TOKEN']
+
     async def asyncSetUp(self):
         """
-        Initialize client before tests start.
+        Initialize client before each test start.
         """
-        url = os.environ['DIRECTUS_URL']
-        email = os.environ['DIRECTUS_EMAIL']
-        password = os.environ['DIRECTUS_PASSWORD']
-        token = os.environ['DIRECTUS_TOKEN']
 
-        self.directus = await Directus(url, email=email, password=password)
+        self.directus = await Directus(self.url, email=self.email, password=self.password)
 
     async def asyncTearDown(self):
         """
-        Close client after tests end.
+        Close client after each test end.
         """
         # Logout
         await self.directus.logout()
@@ -109,7 +116,7 @@ class TestRequest(unittest.IsolatedAsyncioTestCase):
 
     async def test_aggregate(self):
         # include_count
-        jn_doe_res = await self.directus.collection("directus_users").aggregate(AggregationOperators.Count).read()
+        jn_doe_res = await self.directus.collection("directus_users").aggregate().read()
 
         result_items = jn_doe_res.items
         self.assertIsNotNone(result_items)

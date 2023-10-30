@@ -155,6 +155,4 @@ The output will be a dictionary that you can use to debug your filter.
 | `__nintersects`      | Doesn't intersect                   |
 | `__intersects_bbox`  | Intersects Bounding box             |
 | `__nintersects_bbox` | Doesn't intersect bounding box      |
-
-
  

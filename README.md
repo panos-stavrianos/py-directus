@@ -206,17 +206,33 @@ await directus.collection("directus_users").limit(10).read()
 
 ### Aggregation
 
-You can aggregate the data by passing the aggregation operator to the `aggregate` method
+> NOTE: Temporary syntax
+
+You can aggregate the data by defining the needed aggregation with the `Agg` class and passing it to the `aggregate` method
 
 ```python
-await directus.collection("directus_users").aggregate(AggregationOperators.Count).read()
+from py_directus.aggregator import Agg
+
+agg_obj = Agg(AggregationOperators.Count)
+
+await directus.collection("directus_users").aggregate(agg_obj).read()
+```
+
+In case you need only certain fields
+
+```python
+from py_directus.aggregator import Agg
+
+amount_agg = Agg(AggregationOperators.Sum, fields="amount")
+
+await directus.collection("transactions").aggregate(amount_agg).read()
 ```
 
 The available aggregation operators are:
 
 - Count
 - CountDistinct
-- CountAll
+- CountAll (Only in GraphQL)
 - Sum
 - SumDistinct
 - Average

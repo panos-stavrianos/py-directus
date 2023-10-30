@@ -37,11 +37,13 @@ class F:
     def parse_key(key):
         field = None
         operator = None
+
         for _operator in FILTER_OPERATORS:
             if key.endswith("_" + _operator):
                 field = key[:-len("_" + _operator)]
                 operator = _operator
                 break
+
         if field is None:
             operator = "_eq"
             field = key.replace("__", ".")

@@ -7,7 +7,7 @@ from pydantic import BaseModel
 
 from py_directus.directus_response import DirectusResponse
 from py_directus.filter import F
-from py_directus.operators import AggregationOperators
+from py_directus.aggregator import Agg
 
 if TYPE_CHECKING:
     from py_directus import Directus
@@ -100,18 +100,22 @@ class DirectusRequest:
         self.params['meta'] = '*'
         return self
 
-    def aggregate(self, operator: AggregationOperators = AggregationOperators.Count, field='*'):
+    def aggregate(self, aggregate: Agg | None = None):
         """
         :param operator: The operator to use for the aggregation (AggregationOperators.Count)
         :param field: Field name uppon which the aggregation will be performed
 
         :return: The DirectusRequest object
         """
-        self.params['aggregate'] = {operator.value: field}
+        if not aggregate:
+            aggregate = Agg()
+
+        self.params['aggregate'] = aggregate
+
         return self
 
     def group_by(self, *fields):
-        self.params['groupBy'] = ','.join(fields)
+        self.params['groupBy'] = ",".join(fields)
         return self
 
     # def read_one(self, id: int | str) -> DirectusResponse:
@@ -137,7 +141,7 @@ class DirectusRequest:
                 auth=self.directus.auth
             )
         elif method == "get":
-            url = f'{self.uri}/{id}' if id is not None else self.uri
+            url = f"{self.uri}/{id}" if id is not None else self.uri
             response = await self.directus.connection.get(url, params=self.params, auth=self.directus.auth)
         else:
             raise ValueError(f"Method '{method}' not supported")

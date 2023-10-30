@@ -17,12 +17,17 @@ class TestClient(unittest.IsolatedAsyncioTestCase):
     """
     Test `Directus` asynchronous client initialization, login and logout functionality.
     """
+    
+    @classmethod
+    def setUpClass(cls):
+        """
+        Define constants on class before before running tests in the class.
+        """
 
-    async def asyncSetUp(self):
-        self.url = os.environ['DIRECTUS_URL']
-        self.email = os.environ['DIRECTUS_EMAIL']
-        self.password = os.environ['DIRECTUS_PASSWORD']
-        self.token = os.environ['DIRECTUS_TOKEN']
+        cls.url = os.environ['DIRECTUS_URL']
+        cls.email = os.environ['DIRECTUS_EMAIL']
+        cls.password = os.environ['DIRECTUS_PASSWORD']
+        cls.token = os.environ['DIRECTUS_TOKEN']
 
     async def test_initialize(self):
         """
