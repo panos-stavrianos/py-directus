@@ -8,6 +8,7 @@ from pydantic import BaseModel
 from py_directus.directus_response import DirectusResponse
 from py_directus.filter import F
 from py_directus.aggregator import Agg
+# from py_directus.operators import AggregationOperators
 
 if TYPE_CHECKING:
     from py_directus import Directus
@@ -96,10 +97,6 @@ class DirectusRequest:
         self.params['offset'] = offset
         return self
 
-    def include_count(self):
-        self.params['meta'] = '*'
-        return self
-
     def aggregate(self, aggregate: Agg | None = None):
         """
         :param operator: The operator to use for the aggregation (AggregationOperators.Count)
@@ -107,15 +104,25 @@ class DirectusRequest:
 
         :return: The DirectusRequest object
         """
-        if not aggregate:
-            aggregate = Agg()
 
-        self.params['aggregate'] = aggregate
+        if "aggregate" in self.params:
+            if isinstance(aggregate, Agg):
+                self.params['aggregate'] = self.params['aggregate'] & aggregate
+        else:
+            if not aggregate:
+                aggregate = Agg()
+
+            self.params['aggregate'] = aggregate
 
         return self
 
     def group_by(self, *fields):
         self.params['groupBy'] = ",".join(fields)
+        return self
+
+    def include_count(self):
+        # NOTE: DEPRECATED, USE AGGREGATION INSTEAD
+        self.params['meta'] = "*"
         return self
 
     # def read_one(self, id: int | str) -> DirectusResponse:

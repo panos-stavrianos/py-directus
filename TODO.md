@@ -221,13 +221,10 @@ Most of the filters functionality is already implemented. See docs for more info
 See at the directus [docs](https://docs.directus.io/reference/query.html) for more info.
 
 - `fields`
-- `aggregate`
 - `count`
 - `sort`
 - `limit`
 - `offset`
 - `Aggregation & Grouping`
 - `deep`
-- `metadata`
- 
-
+- `metadata (DEPRECATED)`

@@ -105,6 +105,7 @@ class TestRequest(unittest.IsolatedAsyncioTestCase):
 
         print(f"test_offset: {result_items}")
 
+    # NOTE: DEPRECATED, USE AGGREGATION INSTEAD
     async def test_include_count(self):
         # include_count
         jn_doe_res = await self.directus.collection("directus_users").include_count().read()
@@ -112,10 +113,11 @@ class TestRequest(unittest.IsolatedAsyncioTestCase):
         result_items = jn_doe_res.items
         self.assertIsNotNone(result_items)
 
-        print(f"test_include_count: {result_items}")
+        print(f"test_include_count (total_count): {jn_doe_res.total_count}")
+        print(f"test_include_count (filtered_count): {jn_doe_res.filtered_count}")
 
     async def test_aggregate(self):
-        # include_count
+        # aggregate
         jn_doe_res = await self.directus.collection("directus_users").aggregate().read()
 
         result_items = jn_doe_res.items
@@ -124,7 +126,7 @@ class TestRequest(unittest.IsolatedAsyncioTestCase):
         print(f"test_aggregate: {result_items}")
 
     async def test_group_by(self):
-        # include_count
+        # group_by
         jn_doe_res = await self.directus.collection("directus_users").group_by("first_name", "last_name").read()
 
         result_items = jn_doe_res.items

@@ -46,3 +46,15 @@ class AggregationOperators(str, Enum):
     AverageDistinct = "avgDistinct"
     Minimum = "min"
     Maximum = "max"
+
+AGGREGATION_OPERATORS = {
+    "_count": AggregationOperators.Count,
+    "_countDistinct": AggregationOperators.CountDistinct,
+    "_countAll": AggregationOperators.CountAll,
+    "_sum": AggregationOperators.Sum,
+    "_sumDistinct": AggregationOperators.SumDistinct,
+    "_avg": AggregationOperators.Average,
+    "_avgDistinct": AggregationOperators.AverageDistinct,
+    "_min": AggregationOperators.Minimum,
+    "_max": AggregationOperators.Maximum
+}
