@@ -19,7 +19,7 @@ setup(
     install_requires=requirements,
     license="MIT license",
     include_package_data=True,
-    keywords=['svelte', 'web components', 'python', 'fastapi', 'flask'],
+    keywords=['directus', 'async', 'wrapper', 'api', 'python', 'asyncio'],
     name='py_directus',
     packages=find_packages(include=['py_directus', 'py_directus.*']),
     url='https://github.com/panos-stavrianos/py-directus',
