@@ -2,13 +2,13 @@ import os
 import unittest
 
 from dotenv import load_dotenv
+
 try:
     from rich import print  # noqa
 except:
     pass
 
 from py_directus import Directus
-
 
 load_dotenv()
 
@@ -17,7 +17,7 @@ class TestClient(unittest.IsolatedAsyncioTestCase):
     """
     Test `Directus` asynchronous client initialization, login and logout functionality.
     """
-    
+
     @classmethod
     def setUpClass(cls):
         """
@@ -56,6 +56,11 @@ class TestClient(unittest.IsolatedAsyncioTestCase):
             user = await directus.user
             print(user)
             self.assertIsNotNone(user.id)
+
+            # directus.collection("directus_users").aggregate()  # count("*")
+            # directus.collection("directus_users").aggregate("*")  # count("*")
+            # directus.collection("directus_users").aggregate(count="name")  # count("name")
+            # directus.collection("directus_users").aggregate("*", sum="name", )  # count("*"), sum("name")
 
     async def test_late_login(self):
         """
