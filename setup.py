@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 
-import pathlib
+from pathlib import Path
 
 from setuptools import setup, find_packages
 
 with open('requirements.txt') as requirements_file:
     requirements = requirements_file.readlines()
 
-readme = pathlib.Path('README.md').read_text()
+with open('fastapi_requirements.txt') as fastapi_requirements_file:
+    fastapi_requirements = fastapi_requirements_file.readlines()
+
+readme = Path('README.md').read_text()
 
 setup(
     author="Panos Stavrianos",
@@ -17,6 +20,9 @@ setup(
     long_description=readme,
     long_description_content_type='text/markdown',
     install_requires=requirements,
+    extras_require={
+        "FastAPI": fastapi_requirements,
+    },
     license="MIT license",
     include_package_data=True,
     keywords=['directus', 'async', 'wrapper', 'api', 'python', 'asyncio'],

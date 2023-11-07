@@ -1,5 +1,9 @@
 import unittest
-import json
+
+try:
+    from rich import print  # noqa
+except:
+    pass
 
 from py_directus.aggregator import Agg
 from py_directus.operators import AggregationOperators
