@@ -44,9 +44,7 @@ class HeaderAndCookieBearer:
     async def __call__(self, request: Request, response: Response) -> Optional[Directus]:
         header_directus = await HeaderAndCookieBearer.check_header(request)
         cookie_directus = await HeaderAndCookieBearer.check_cookie(request)
-        directus = header_directus or cookie_directus
-
-        if directus:
+        if directus := header_directus or cookie_directus:
             return directus
 
         raise HTTPException(
