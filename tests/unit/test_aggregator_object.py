@@ -19,9 +19,13 @@ class TestAggregatorObject(unittest.TestCase):
 
         print(f"aggregate: {aggregate}")
 
+        kwarg_aggregate = Agg(count=['accepted', 'noted'], sum="price")
+
+        print(f"kwarg_aggregate: {kwarg_aggregate}")
+
         complex_aggregate = (
-            Agg(AggregationOperators.Count, fields=['id', 'name']) 
-            & Agg(AggregationOperators.Sum, fields='amount')
+            Agg(operator=AggregationOperators.Count, fields=['id', 'name']) 
+            + Agg(operator=AggregationOperators.Sum, fields='amount')
         )
 
         print(f"complex_aggregate: {complex_aggregate}")

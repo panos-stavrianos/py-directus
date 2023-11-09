@@ -217,14 +217,32 @@ await directus.collection("directus_users").limit(10).read()
 
 ### Aggregation
 
-> NOTE: Temporary syntax
+Aggregate the number of records in the query
+
+```python
+await directus.collection("directus_users").aggregate().read()
+
+# OR
+
+await directus.collection("directus_users").aggregate(count="*").read()
+```
+
+To add multiple aggregates you can chain the `aggregate` method
+
+```python
+await directus.collection("products")
+.aggregate(countDistinct="id")
+.aggregate(sum="price").read()
+```
+
+#### Agg objects
 
 You can aggregate the data by defining the needed aggregation with the `Agg` class and passing it to the `aggregate` method
 
 ```python
 from py_directus.aggregator import Agg
 
-agg_obj = Agg(AggregationOperators.Count)
+agg_obj = Agg(operator=AggregationOperators.Count)
 
 await directus.collection("directus_users").aggregate(agg_obj).read()
 ```
@@ -234,7 +252,7 @@ In case you need only certain fields
 ```python
 from py_directus.aggregator import Agg
 
-amount_agg = Agg(AggregationOperators.Sum, fields="amount")
+amount_agg = Agg(operator=AggregationOperators.Sum, fields="amount")
 
 await directus.collection("transactions").aggregate(amount_agg).read()
 ```

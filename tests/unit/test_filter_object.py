@@ -22,6 +22,11 @@ class TestFilterObject(unittest.TestCase):
         filter_multi_attr = F(name__contains="John", age__gt=23)
         print(f"Multiple attribute filter: {filter_multi_attr}")
 
+        ### Deep field filter
+
+        filter_deep_attr = F(user__name__contains="John")
+        print(f"Deep attribute filter: {filter_deep_attr}")
+
         ### Combine filters
 
         # age equals 23 and name equals John

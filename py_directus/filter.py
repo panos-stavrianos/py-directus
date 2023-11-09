@@ -3,10 +3,11 @@ import json
 from rich import print  # noqa
 from rich.console import Console  # noqa
 
+from py_directus.expression import Expression
 from py_directus.operators import FILTER_OPERATORS
 
 
-class F:
+class F(Expression):
     """
     Filter field.
     """
@@ -43,12 +44,15 @@ class F:
                 field = key[:-len("_" + _operator)]
                 operator = _operator
                 break
-
+        
+        # No operator matched, which we assume was not provided.
+        # Thus we use the default 'equals' operator.
         if field is None:
             operator = "_eq"
             field = key.replace("__", ".")
             return field, operator
 
+        # Deep fields
         field = field.replace("__", ".")
 
         if field == "":
@@ -81,12 +85,13 @@ class F:
 
                 return f"({key} {inner_str})"
 
-    def get_explanation(self, tab_char='  '):
+    def get_explanation(self, tab_char="  "):
         input_ex = self.convert_query_to_string(self.query)
         tabs = 0
         index = 0
         min_tabs = 500
-        result = ''
+        result = ""
+
         while True:
             if input_ex[index] == '(':
                 tabs += 1
@@ -105,9 +110,10 @@ class F:
         result = result.split('\n')
         result = filter(lambda x: x.strip(tab_char) != '', result)
         result = list(map(lambda x: x[min_tabs * len(tab_char):], result))
+
         return "\n".join(result)
 
-    def print_explanation(self, tab_char='  '):
+    def print_explanation(self, tab_char="  "):
         console = Console()
         explain = self.get_explanation(tab_char)
         for i in explain.split('\n'):

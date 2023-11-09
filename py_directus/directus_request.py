@@ -97,7 +97,7 @@ class DirectusRequest:
         self.params['offset'] = offset
         return self
 
-    def aggregate(self, aggregate: Agg | None = None):
+    def aggregate(self, *args, **aggregates):
         """
         :param operator: The operator to use for the aggregation (AggregationOperators.Count)
         :param field: Field name uppon which the aggregation will be performed
@@ -105,14 +105,28 @@ class DirectusRequest:
         :return: The DirectusRequest object
         """
 
-        if "aggregate" in self.params:
-            if isinstance(aggregate, Agg):
-                self.params['aggregate'] = self.params['aggregate'] & aggregate
-        else:
-            if not aggregate:
-                aggregate = Agg()
+        # Argument handling
+        clean_args = list(filter(lambda x: isinstance(x, Agg), args))
 
-            self.params['aggregate'] = aggregate
+        new_args_aggregator = None
+        if clean_args:
+            new_args_aggregator = clean_args[0]
+
+            for aggr in clean_args[1:]:
+                new_args_aggregator += aggr
+
+            if "aggregate" in self.params:
+                self.params['aggregate'] = self.params['aggregate'] + new_args_aggregator
+            else:
+                self.params['aggregate'] = new_args_aggregator
+
+        # Keyword argument handling
+        aggregator_param = Agg(**aggregates)
+
+        if "aggregate" in self.params:
+            self.params['aggregate'] = self.params['aggregate'] + aggregator_param
+        else:
+            self.params['aggregate'] = aggregator_param
 
         return self
 
