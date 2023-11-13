@@ -32,3 +32,5 @@ setup(
     version='{{VERSION_PLACEHOLDER}}',
     zip_safe=False
 )
+
+#     version='{{VERSION_PLACEHOLDER}}',

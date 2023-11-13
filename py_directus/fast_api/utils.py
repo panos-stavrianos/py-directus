@@ -4,29 +4,24 @@ from typing import Optional, List
 
 from py_directus.models import Role
 from py_directus import Directus
-
-from .globals import (
-    directus_session, 
-    directus_url, 
-    directus_admin, 
-    cached_directus_instances
-)
+from py_directus.fast_api import globals
 
 
 async def get_directus_login(email: str, password: str) -> Directus:
-    d = await Directus(directus_url, connection=directus_session, email=email, password=password)
-    cached_directus_instances[d.token] = d
+    d = await Directus(globals.directus_url, connection=globals.directus_session, email=email, password=password)
+    globals.cached_directus_instances[d.token] = d
     return d
 
 
 async def get_directus_from_token(access_token, refresh_token=None) -> Optional[Directus]:
-    directus = await Directus(directus_url, token=access_token, refresh_token=refresh_token, connection=directus_session)
+    directus = await Directus(globals.directus_url, token=access_token, refresh_token=refresh_token,
+                              connection=globals.directus_session)
     await directus.user  # noqa
     return directus
 
 
 async def directus_logout(directus: Directus):
-    cached_directus_instances.pop(directus.token, None)
+    globals.cached_directus_instances.pop(directus.token, None)
     await directus.logout()
 
 
@@ -41,14 +36,14 @@ class Roles(str, Enum):
 
 class RoleToID:
     def __init__(self):
-        self.roles: List[Role] | None = None
+        self.roles: Optional[List[Role]] = None
 
     def __await__(self):
         async def closure():
             if getattr(self, "roles", None) is None:
                 # Perform login manually, because the global was instantiated without awaiting
-                await directus_admin
-                roles = await directus_admin.collection(Role).read()
+                await globals.directus_admin
+                roles = await globals.directus_admin.collection(Role).read()
                 self.roles = {role.name: role.id for role in roles.items}
             return self
 
