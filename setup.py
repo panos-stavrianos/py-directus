@@ -11,7 +11,9 @@ with open('fastapi_requirements.txt') as fastapi_requirements_file:
     fastapi_requirements = fastapi_requirements_file.readlines()
 
 readme = Path('README.md').read_text()
-
+version = '{{VERSION_PLACEHOLDER}}'
+if "VERSION_PLACEHOLDER" in version:
+    version = '0.0.8'
 setup(
     author="Panos Stavrianos",
     author_email='panos@orbitsystems.gr',
@@ -29,7 +31,7 @@ setup(
     name='py_directus',
     packages=find_packages(include=['py_directus', 'py_directus.*']),
     url='https://github.com/panos-stavrianos/py-directus',
-    version='{{VERSION_PLACEHOLDER}}',
+    version=version,
     zip_safe=False
 )
 
