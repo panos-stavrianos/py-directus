@@ -30,6 +30,9 @@ class Agg(Expression):
         for key, value in kwargs.items():
             self._from_kwarg(key, value)
 
+        if not self.query:
+            self.query["count"] = "*"
+
     def _from_operator(self, operator: AggregationOperators | None = AggregationOperators.Count, fields: str | List[str] | None = "*"):
         # Clean arguments
         if isinstance(fields, list):
