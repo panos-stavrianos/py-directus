@@ -116,6 +116,7 @@ class F(Expression):
     def print_explanation(self, tab_char="  "):
         console = Console()
         explain = self.get_explanation(tab_char)
+
         for i in explain.split('\n'):
             if "AND" in i or "OR" in i:
                 console.print(i, style="bold")

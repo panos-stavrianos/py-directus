@@ -11,6 +11,7 @@ from pydantic import BaseModel
 from py_directus.directus_request import DirectusRequest
 from py_directus.directus_response import DirectusResponse
 from py_directus.models import Role, User
+from py_directus.transformation import ImageFileTransform
 from py_directus.utils import parse_translations
 
 
@@ -131,10 +132,20 @@ class Directus:
         response_obj = await self.collection("translations").create([{"key": key} for key in keys])
         return response_obj
 
-    async def download_file(self, file_id: str) -> Response:
+    async def download_file(self, file_id: str, **kwargs) -> Response:
         url = f"{self.url}/assets/{file_id}"
 
-        response = await self.connection.get(url, params={"download": ""})
+        request_params = {
+            "download": ""
+        }
+
+        # Image transformation parameters
+        img_transform_parameters = ImageFileTransform(**kwargs).parameters
+
+        if img_transform_parameters:
+            request_params.update(img_transform_parameters)
+
+        response = await self.connection.get(url, params=request_params)
 
         if response.status_code == 200:
             # Get file name

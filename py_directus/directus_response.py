@@ -3,6 +3,11 @@ from __future__ import annotations
 import json
 from typing import Any, TypeVar, List
 
+try:
+    from rich import print  # noqa
+except:
+    pass
+
 from httpx import Response
 
 from pydantic import BaseModel, TypeAdapter
@@ -102,6 +107,50 @@ class DirectusResponse:
             return self.json['errors']
         else:
             return []
+
+    def print_explanation(self):
+        needed_data = {}
+
+        ''' Request '''
+        
+        resp_request = self.response.request
+
+        request_data = {
+            "method": resp_request.method,
+            "url": str(resp_request.url)
+        }
+
+        # headers
+        request_data["headers"] = self.response.headers.multi_items()
+
+        # extensions
+        request_data["extensions"] = resp_request.extensions
+
+        needed_data["Request"] = request_data
+
+        ''' Response '''
+
+        response_data = {
+            "status_code": self.response.status_code
+        }
+
+        # headers
+        response_data["headers"] = self.response.headers.multi_items()
+
+        # cookies
+        cookies = self.response.cookies
+
+        response_data["cookies"] = [
+            f"<Cookie {cookie.name}={cookie.value} for {cookie.domain} />"
+            for cookie in cookies.jar
+        ]
+
+        # data
+        response_data.update(self.response.json())
+
+        needed_data["Response"] = response_data
+
+        print(needed_data)
 
 
 class DirectusException(Exception):
