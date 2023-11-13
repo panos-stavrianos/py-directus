@@ -3,7 +3,9 @@ venv/
 .idea/
 .vscode/
 .backups/
-
+build/
+dist/
+py_directus.egg-info/
 # Cache
 __pycache__/
 

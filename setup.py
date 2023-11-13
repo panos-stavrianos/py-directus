@@ -29,6 +29,6 @@ setup(
     name='py_directus',
     packages=find_packages(include=['py_directus', 'py_directus.*']),
     url='https://github.com/panos-stavrianos/py-directus',
-    version='{{VERSION_PLACEHOLDER}}',
+    version='0.0.5',
     zip_safe=False
 )
