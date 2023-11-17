@@ -132,7 +132,15 @@ class Directus:
         response_obj = await self.collection("translations").create([{"key": key} for key in keys])
         return response_obj
 
-    async def download_file(self, file_id: str, **kwargs) -> Response:
+    async def download_file(
+        self, file_id: str, 
+        fit: str | None = None, 
+        width: int | None = None, height: int | None = None, 
+        quality: int | None = None, 
+        withoutEnlargement: bool | None = None, 
+        img_format: str | None = None, 
+        **kwargs
+    ) -> Response:
         url = f"{self.url}/assets/{file_id}"
 
         request_params = {
@@ -140,7 +148,14 @@ class Directus:
         }
 
         # Image transformation parameters
-        img_transform_parameters = ImageFileTransform(**kwargs).parameters
+        img_transform_parameters = ImageFileTransform(
+            fit=fit, 
+            width=width, 
+            quality=quality, 
+            withoutEnlargement=withoutEnlargement, 
+            img_format=img_format, 
+            **kwargs
+        ).parameters
 
         if img_transform_parameters:
             request_params.update(img_transform_parameters)
