@@ -66,19 +66,27 @@ class F(Expression):
             field = None
         return field, operator
 
-    def __and__(self, other: 'F'):
-        # Implement the logical AND operator
-        if other:
-            return F(__and=[self.query, other.query])
-        else:
+    def compine(self, other: 'F', operator: str) -> 'F':
+        if other is None:
             return self
+        else:
+            if other.query == {}:
+                return self
+            elif self.query == {}:
+                return other
+            return F(**{operator: [self.query, other.query]})
+
+    def __and__(self, other: 'F'):
+        return self.compine(other, "__and")
 
     def __or__(self, other: 'F'):
-        # Implement the logical OR operator
-        if other:
-            return F(__or=[self.query, other.query])
-        else:
-            return self
+        return self.compine(other, "__or")
+
+    def __rand__(self, other: 'F'):
+        return self.__and__(other)
+
+    def __ror__(self, other: 'F'):
+        return self.__or__(other)
 
     def __str__(self):
         return f"\n{json.dumps(self.query, indent=2)}\n"
