@@ -59,8 +59,17 @@ async def main():
     
     our_cm = lifespan()
 
-    async with our_cm(app="OTHER SOME") as orig_cm:
+    async with our_cm(app="OTHER SOME") as orig:
         print("OTHER MIDDLE")
+
+    print("______________________")
+
+    print("Wrapped twice")
+
+    twice_cm = lifespan(app="TWICE SOME")(secondlifespan)
+
+    async with twice_cm(app="TWICE OTHER SOME") as twice:
+        print("TWICE OTHER MIDDLE")
 
 
 if __name__ == "__main__":

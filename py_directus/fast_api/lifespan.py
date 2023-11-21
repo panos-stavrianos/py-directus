@@ -48,3 +48,15 @@ def lifespan(*og_args, **og_kwargs):
         else:
             return _lifespan(*og_args, *ag_args, **og_kwargs, **ag_kwargs)
     return wrapper
+
+
+def init_directus(app: FastAPI, directus_base_url: str, directus_admin_token: str):
+    """
+    Wrap the lifespan context manager of FastAPI with our own.
+    """
+
+    cm = app.router.lifespan_context
+    app.router.lifespan_context = lifespan(
+        directus_base_url=directus_base_url, 
+        directus_admin_token=directus_admin_token
+    )(cm)

@@ -108,7 +108,7 @@ class DirectusResponse:
         else:
             return []
 
-    def print_explanation(self):
+    def get_explanation(self, show_headers=True, show_cookies=True) -> dict:
         needed_data = {}
 
         ''' Request '''
@@ -121,7 +121,8 @@ class DirectusResponse:
         }
 
         # headers
-        request_data["headers"] = self.response.headers.multi_items()
+        if show_headers:
+            request_data["headers"] = self.response.headers.multi_items()
 
         # extensions
         request_data["extensions"] = resp_request.extensions
@@ -135,20 +136,27 @@ class DirectusResponse:
         }
 
         # headers
-        response_data["headers"] = self.response.headers.multi_items()
+        if show_headers:
+            response_data["headers"] = self.response.headers.multi_items()
 
         # cookies
-        cookies = self.response.cookies
+        if show_cookies:
+            cookies = self.response.cookies
 
-        response_data["cookies"] = [
-            f"<Cookie {cookie.name}={cookie.value} for {cookie.domain} />"
-            for cookie in cookies.jar
-        ]
+            response_data["cookies"] = [
+                f"<Cookie {cookie.name}={cookie.value} for {cookie.domain} />"
+                for cookie in cookies.jar
+            ]
 
         # data
         response_data.update(self.response.json())
 
         needed_data["Response"] = response_data
+
+        return needed_data
+
+    def print_explanation(self, show_headers=True, show_cookies=True):
+        needed_data = self.get_explanation(show_headers=show_headers, show_cookies=show_cookies)
 
         print(needed_data)
 
