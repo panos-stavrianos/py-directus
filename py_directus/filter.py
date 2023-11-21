@@ -36,8 +36,6 @@ class F(Expression):
             else:
                 self.query[field][operator] = value
 
-            print(f"self.query: {self.query}")
-
         if len(kwargs.items()) > 1:
             inner_queries = []
             for key, value in kwargs.items():
