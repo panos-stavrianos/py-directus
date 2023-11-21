@@ -1,10 +1,9 @@
 import json
 
-from rich import print  # noqa
-from rich.console import Console  # noqa
-
 from py_directus.expression import Expression
 from py_directus.operators import FILTER_OPERATORS
+from rich import print  # noqa
+from rich.console import Console  # noqa
 
 
 class F(Expression):
@@ -19,14 +18,25 @@ class F(Expression):
         # Parse keyword arguments into query format
         for key, value in kwargs.items():
             field, operator = F.parse_key(key)
-
+            print(f"field: {field}, operator: {operator}")
             if not field:  # its a logical operator
                 self.query[operator] = value
                 continue
+            field_parts = field.split(".")
+            field = field_parts[0]
 
             if field not in self.query:
                 self.query[field] = {}
-            self.query[field][operator] = value
+            # convert deep fields from dot notation to nested dicts
+            if len(field_parts) > 1:
+                inner_dict = {operator: value}
+                for part in reversed(field_parts[1:]):
+                    inner_dict = {part: inner_dict}
+                self.query[field] = {**self.query[field], **inner_dict}
+            else:
+                self.query[field][operator] = value
+
+            print(f"self.query: {self.query}")
 
         if len(kwargs.items()) > 1:
             inner_queries = []
@@ -44,7 +54,7 @@ class F(Expression):
                 field = key[:-len("_" + _operator)]
                 operator = _operator
                 break
-        
+
         # No operator matched, which we assume was not provided.
         # Thus we use the default 'equals' operator.
         if field is None:
@@ -77,7 +87,8 @@ class F(Expression):
         if "_or" in input_dict or "_and" in input_dict:
             key = "_or" if "_or" in input_dict else "_and"
             op_list = input_dict[key]
-            return "(" + f"{FILTER_OPERATORS[key]}".join([self.convert_query_to_string(subdict) for subdict in op_list]) + ")"
+            return "(" + f"{FILTER_OPERATORS[key]}".join(
+                [self.convert_query_to_string(subdict) for subdict in op_list]) + ")"
         else:
             key, value = list(input_dict.items())[0]
             if isinstance(value, dict):
