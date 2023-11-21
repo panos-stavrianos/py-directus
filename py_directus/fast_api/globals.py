@@ -7,7 +7,7 @@ from py_directus import Directus
 cached_directus_instances = dict[str, Directus]()
 
 directus_session = AsyncClient()
-directus_session.timeout = 0.7
+directus_session.timeout = 5
 directus_session.headers.update({'Cache-Control': 'no-store'})
 
 directus_url = None
