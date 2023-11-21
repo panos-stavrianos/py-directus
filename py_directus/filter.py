@@ -66,7 +66,7 @@ class F(Expression):
             field = None
         return field, operator
 
-    def compine(self, other: 'F', operator: str) -> 'F':
+    def combine(self, other: 'F', operator: str) -> 'F':
         if other is None:
             return self
         else:
@@ -77,10 +77,10 @@ class F(Expression):
             return F(**{operator: [self.query, other.query]})
 
     def __and__(self, other: 'F'):
-        return self.compine(other, "__and")
+        return self.combine(other, "__and")
 
     def __or__(self, other: 'F'):
-        return self.compine(other, "__or")
+        return self.combine(other, "__or")
 
     def __rand__(self, other: 'F'):
         return self.__and__(other)
