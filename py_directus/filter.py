@@ -69,11 +69,17 @@ class F(Expression):
 
     def __and__(self, other: 'F'):
         # Implement the logical AND operator
-        return F(__and=[self.query, other.query])
+        if other:
+            return F(__and=[self.query, other.query])
+        else:
+            return self
 
     def __or__(self, other: 'F'):
         # Implement the logical OR operator
-        return F(__or=[self.query, other.query])
+        if other:
+            return F(__or=[self.query, other.query])
+        else:
+            return self
 
     def __str__(self):
         return f"\n{json.dumps(self.query, indent=2)}\n"
