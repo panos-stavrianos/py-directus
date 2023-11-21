@@ -18,7 +18,6 @@ class F(Expression):
         # Parse keyword arguments into query format
         for key, value in kwargs.items():
             field, operator = F.parse_key(key)
-            print(f"field: {field}, operator: {operator}")
             if not field:  # its a logical operator
                 self.query[operator] = value
                 continue
