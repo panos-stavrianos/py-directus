@@ -12,6 +12,7 @@ from py_directus.directus_request import DirectusRequest
 from py_directus.directus_response import DirectusResponse
 from py_directus.models import Role, User
 from py_directus.transformation import ImageFileTransform
+from py_directus.storage import save_file
 from py_directus.utils import parse_translations
 
 
@@ -58,15 +59,6 @@ class Directus:
             return self
 
         return closure().__await__()
-
-    # @classmethod
-    # async def create(cls, url, email=None, password=None, token=None, refresh_token=None, 
-    #                  connection: AsyncClient = None):
-    #     client = cls(url, email, password, token, refresh_token, connection)
-
-    #     if client.email and client.password:
-    #         await client.login()
-    #     return client
 
     def collection(self, collection: Type[BaseModel] | str) -> DirectusRequest:
         """
@@ -168,9 +160,7 @@ class Directus:
             fname = re.findall("filename=[\"\'](.+)[\"\']", d)
             cln_fname = fname[0] if fname else file_id
 
-            # Create file from received data
-            with open(cln_fname, 'wb') as f:
-                f.write(response.content)
+            save_file(cln_fname, response.content)
 
         return response
 
