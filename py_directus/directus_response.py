@@ -5,6 +5,7 @@ from typing import Any, TypeVar, List
 
 try:
     from rich import print  # noqa
+    from rich.console import Console  # noqa
 except:
     pass
 
@@ -111,6 +112,12 @@ class DirectusResponse:
     def get_explanation(self, show_headers=True, show_cookies=True) -> dict:
         needed_data = {}
 
+        ''' Query '''
+
+        needed_data["Query"] = {
+            k: (v.get_explanation() if hasattr(v, 'get_explanation') else v) for k, v in self.query.items()
+        }
+
         ''' Request '''
         
         resp_request = self.response.request
@@ -156,9 +163,22 @@ class DirectusResponse:
         return needed_data
 
     def print_explanation(self, show_headers=True, show_cookies=True):
+        console = Console()
         needed_data = self.get_explanation(show_headers=show_headers, show_cookies=show_cookies)
 
-        print(needed_data)
+        console.print("///////// --------- Start DirectusResponse explanation --------- /////////", style="bold")
+
+        for k, v in needed_data.items():
+            console.print(k, style="bold")
+            
+            if k == "Query":
+                for q_k, q_v in v.items():
+                    console.print(q_k, style="bold")
+                    console.print(q_v)
+            else:
+                console.print(v)
+
+        console.print("///////// --------- End DirectusResponse explanation --------- /////////", style="bold")
 
 
 class DirectusException(Exception):

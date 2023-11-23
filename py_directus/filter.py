@@ -1,9 +1,10 @@
 import json
 
-from py_directus.expression import Expression
-from py_directus.operators import FILTER_OPERATORS
 from rich import print  # noqa
 from rich.console import Console  # noqa
+
+from py_directus.expression import Expression
+from py_directus.operators import FILTER_OPERATORS
 
 
 class F(Expression):
