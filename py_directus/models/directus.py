@@ -1,17 +1,17 @@
 from typing import Optional
 
-from pydantic import BaseModel
+from .base import DirectusModel
 
 
-class Role(BaseModel):
+class Role(DirectusModel):
     id: Optional[str] = None
     name: Optional[str] = None
 
     class Config:
-        collection = 'directus_roles'
+        collection = "directus_roles"
 
 
-class User(BaseModel):
+class User(DirectusModel):
     id: Optional[str] = None
     first_name: Optional[str] = None
     last_name: Optional[str] = None
@@ -24,4 +24,4 @@ class User(BaseModel):
     token: Optional[str] = None
 
     class Config:
-        collection = 'directus_users'
+        collection = "directus_users"
