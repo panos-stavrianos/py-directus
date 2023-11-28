@@ -114,7 +114,7 @@ def _get_default_downloads_path(filename: str):
     return os.path.join(path, filename)
 
 
-def save_file(filename: str, content: bytes):
+def save_file(filename: str, content: bytes) -> str:
     """
     """
 
@@ -135,3 +135,8 @@ def save_file(filename: str, content: bytes):
         else:
             # Everything went OK, so get out of the infinite loop
             break
+
+    # Ensure that the name returned from the storage system is still valid.
+    _validate_file_name(name, allow_relative_path=True)
+
+    return name
