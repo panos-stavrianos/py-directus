@@ -2,6 +2,7 @@ import os
 import pathlib
 import errno
 import platformdirs
+import aiofiles
 
 from py_directus.utils import get_random_string
 
@@ -114,7 +115,7 @@ def _get_default_downloads_path(filename: str):
     return os.path.join(path, filename)
 
 
-def save_file(filename: str, content: bytes) -> str:
+async def save_file(filename: str, content: bytes) -> str:
     """
     """
 
@@ -123,11 +124,11 @@ def save_file(filename: str, content: bytes) -> str:
 
     # Create file from received data
 
-    while True: 
+    while True:
         try:
             # Open for exclusive creation (as bytes)
-            with open(full_path, 'xb') as f:
-                f.write(content)
+            async with aiofiles.open(full_path, 'xb') as f:
+                await f.write(content)
         except FileExistsError:
             # A new name is needed if the file exists.
             name = _get_available_name(name)

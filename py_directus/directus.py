@@ -3,6 +3,7 @@ import re
 import datetime
 import inspect
 import magic
+# import aiofiles
 from typing import Optional, Type
 
 from httpx import AsyncClient, Auth, Response
@@ -160,7 +161,7 @@ class Directus:
             fname = re.findall("filename=[\"\'](.+)[\"\']", d)
             cln_fname = fname[0] if fname else file_id
 
-            save_file(cln_fname, response.content)
+            await save_file(cln_fname, response.content)
 
         return response
 
@@ -176,11 +177,20 @@ class Directus:
             # "folder": "foreign_key"
         }
 
-        files = {
-            "file": (file_name, open(file_path, 'rb'), file_mime)
-        }
+        try:
+            # File
+            # NOTE: CANNOT USE ASYNCHRONOUS FILES BECAUSE THEY ARE NOT SUPPORTED BY HTTPX
+            # https://github.com/encode/httpx/issues/1620
+            # f = await aiofiles.open(file_path, 'rb')
+            f = open(file_path, 'rb')
 
-        response = await self.connection.post(url, data=data, files=files, auth=self.auth)
+            files = {
+                "file": (file_name, f, file_mime)
+            }
+
+            response = await self.connection.post(url, data=data, files=files, auth=self.auth)
+        finally:
+            f.close()
 
         return response
 
