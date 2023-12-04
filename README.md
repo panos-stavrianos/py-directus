@@ -117,10 +117,13 @@ Or you can pass the collection as a `Pydantic` model
 
 ```python
 from typing import Optional
-from pydantic import BaseModel
+
+from pydantic import ConfigDict
+
+from py_directus.models import DirectusModel
 
 
-class User(BaseModel):
+class User(DirectusModel):
     id: Optional[str]
     first_name: Optional[str]
     last_name: Optional[str]
@@ -132,14 +135,13 @@ class User(BaseModel):
     title: Optional[str]
     token: Optional[str]
 
-    class Config:
-        collection = 'directus_users'
+    model_config = ConfigDict(collection="directus_users")
 
 
 directus.collection(User)
 ```
 
-> Don't forget to set the `collection` attribute in the `Config` class
+> Don't forget to set the `collection` attribute in the `model_config` attribute
 
 If you go with the second option, you will get the responses as `Pydantic` models (auto parsing)
 
@@ -301,7 +303,9 @@ You can get the count of the data (total count and filtered count) calling `incl
 await directus.collection("directus_users").include_count().read()
 ```
 
-## Retrieving items
+## CRUD
+
+### Retrieving items
 
 After you call `read()` you get a `DirectusResponse` object which contains the data.
 
@@ -324,9 +328,9 @@ print(response.item.first_name)
 print(response.items)
 ```
 
-### Converting to Pydantic or to Dictionary
+### Converting to Models (pydantic) or to Dictionary
 
-Apart from the auto parsing, you can manually convert the data to a `Pydantic` object or to a dictionary using:
+Apart from the auto parsing, you can manually convert the data to a `Pydantic` model instance or to a dictionary using:
 
 - `item_as(User)` or `items_as(User)`
 - `item_as_dict()` or `items_as_dict()`
@@ -339,7 +343,7 @@ response = await directus.collection(User).read()
 print(response.item_as_dict())
 ```
 
-## Creating Items
+### Creating Items
 
 The library does not support `Pydantic` models for creation, you have to pass a dictionary
 
@@ -360,14 +364,12 @@ await directus.collection("directus_users").create(
 )
 ```
 
-## Updating Items
+### Updating Items
 
 The library do not support `Pydantic` models for updating, you have to pass a dictionary
 
 - `update(ids: str|int, items: dict)`
 - `update(ids: List[str|int], items: List[dict])`
-
-> Supporting `Pydantic` models for updating items is not planned for now
 
 ```python
 await directus.collection("directus_users").update(1, {
@@ -386,7 +388,7 @@ await directus.collection("directus_users").update(
 )
 ```
 
-## Deleting Items
+### Deleting Items
 
 - `delete(ids: str|int|List[str|int])`
 
@@ -398,7 +400,11 @@ await directus.collection("directus_users").delete(1)
 await directus.collection("directus_users").delete([1, 2])
 ```
 
+> Supporting `Pydantic` models for `create`/`update`/`delete` item operations is not planned for now.
+
 ## Examples
+
+> Examples are not included with the `pypi` package, so you will have to download them separately and execute in a virtual environment.
 
 Run individual examples as such:
 

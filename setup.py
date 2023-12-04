@@ -27,7 +27,7 @@ setup(
     },
     license="MIT license",
     include_package_data=True,
-    keywords=['directus', 'async', 'wrapper', 'api', 'python', 'asyncio'],
+    keywords=['python', 'directus', 'async', 'asyncio', 'api', 'wrapper'],
     name='py_directus',
     packages=find_packages(include=['py_directus', 'py_directus.*']),
     url='https://github.com/panos-stavrianos/py-directus',

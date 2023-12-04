@@ -70,8 +70,12 @@ class Directus:
             assert issubclass(collection, BaseModel), (
                 f"The provided collection model must be a subclass of pydantic.BaseModel"
             )
-            assert collection.Config.collection is not None
-            return DirectusRequest(self, collection.Config.collection, collection)
+
+            collection_name = collection.model_config.get("collection", None)
+
+            assert collection_name is not None
+
+            return DirectusRequest(self, collection_name, collection)
         elif isinstance(collection, str):
             return DirectusRequest(self, collection, None)
 
