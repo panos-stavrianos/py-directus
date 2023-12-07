@@ -54,7 +54,7 @@ from py_directus import Directus
 directus = await Directus("https://example.com", email="user@example.com", password="secret")
 ```
 
-Alternately create a Directus instance using the static token
+Alternatively create a Directus instance using the static token
 
 ```python
 from py_directus import Directus
@@ -400,7 +400,7 @@ await directus.collection("directus_users").delete(1)
 await directus.collection("directus_users").delete([1, 2])
 ```
 
-> Supporting `Pydantic` models for `create`/`update`/`delete` item operations is not planned for now.
+> Supporting `Pydantic` models for `create`/`update`/`delete` item operations is shortly coming.
 
 ## Examples
 
