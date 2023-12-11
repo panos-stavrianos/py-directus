@@ -4,7 +4,7 @@ import datetime
 import inspect
 import magic
 # import aiofiles
-from typing import Optional, Type
+from typing import Union, Optional, Type
 
 from httpx import AsyncClient, Auth, Response
 from pydantic import BaseModel
@@ -42,7 +42,7 @@ class Directus:
         self.url: str = url
 
         self._token: Optional[str] = None
-        self._user: User | None = None
+        self._user: Optional[User] = None
         self._user_model: Type[User] = user_model
 
         self.email = email
@@ -61,7 +61,7 @@ class Directus:
 
         return closure().__await__()
 
-    def collection(self, collection: Type[BaseModel] | str) -> DirectusRequest:
+    def collection(self, collection: Union[Type[BaseModel], str]) -> DirectusRequest:
         """
         Set collection to be used.
         """
@@ -84,7 +84,7 @@ class Directus:
             f"You gave: {collection}"
         )
 
-    async def me(self, user_model: Type[User] | str | None = None) -> DirectusResponse:
+    async def me(self, user_model: Union[Type[User], str, None] = None) -> DirectusResponse:
         """
         Retrieve logged in user's information.
         """
@@ -131,11 +131,11 @@ class Directus:
 
     async def download_file(
         self, file_id: str, 
-        fit: str | None = None, 
-        width: int | None = None, height: int | None = None, 
-        quality: int | None = None, 
-        withoutEnlargement: bool | None = None, 
-        img_format: str | None = None, 
+        fit: Optional[str] = None, 
+        width: Optional[int] = None, height: Optional[int] = None, 
+        quality: Optional[int] = None, 
+        withoutEnlargement: Optional[bool] = None, 
+        img_format: Optional[str] = None, 
         **kwargs
     ) -> Response:
         url = f"{self.url}/assets/{file_id}"

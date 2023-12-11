@@ -1,5 +1,5 @@
 import secrets
-from typing import Optional
+from typing import Union, Optional, List
 
 
 RANDOM_STRING_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -23,7 +23,7 @@ def get_random_string(length=None, allowed_chars=RANDOM_STRING_CHARS):
     return "".join(secrets.choice(allowed_chars) for i in range(length))
 
 
-def parse_translations(all_translations: list[dict]) -> dict[str, dict[str, str]] | None:
+def parse_translations(all_translations: List[dict]) -> Union[dict[str, dict[str, str]], None]:
     if all_translations is None or not all_translations:
         return None
 

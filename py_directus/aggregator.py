@@ -1,5 +1,5 @@
 import json
-from typing import List
+from typing import Union, List
 
 from py_directus.expression import Expression
 from py_directus.operators import AGGREGATION_OPERATORS, AggregationOperators
@@ -33,7 +33,7 @@ class Agg(Expression):
         if not self.query:
             self.query["count"] = "*"
 
-    def _from_operator(self, operator: AggregationOperators | None = AggregationOperators.Count, fields: str | List[str] | None = "*"):
+    def _from_operator(self, operator: Union[AggregationOperators, None] = AggregationOperators.Count, fields: Union[str, List[str], None] = "*"):
         # Clean arguments
         if isinstance(fields, list):
             cln_fields = [Agg.parse_key(fld)[0] for fld in fields]
@@ -50,7 +50,7 @@ class Agg(Expression):
         # Add given arguments
         self._add(operator, field)
     
-    def _from_kwarg(self, operator: str, fields: str | List[str]):
+    def _from_kwarg(self, operator: str, fields: Union[str, List[str]]):
         # Clean arguments
         if isinstance(fields, list):
             cln_fields = [Agg.parse_key(fld)[0] for fld in fields]
@@ -88,7 +88,7 @@ class Agg(Expression):
             field = None
         return field, operator
 
-    def _add(self, operator: AggregationOperators | str | None = None, fields: str | List[str] | None = None):
+    def _add(self, operator: Union[AggregationOperators, str, None] = None, fields: Union[str, List[str], None] = None):
         if operator and fields:
             if isinstance(operator, AggregationOperators):
                 needed_operator = operator.value

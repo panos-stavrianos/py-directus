@@ -1,7 +1,7 @@
 import asyncio
 from functools import wraps
 from http import HTTPStatus
-from typing import Optional, List
+from typing import Union, Optional, List
 
 from dotenv import load_dotenv
 from httpx import AsyncClient
@@ -58,7 +58,7 @@ class HeaderAndCookieBearer:
 directus_auth = HeaderAndCookieBearer()
 
 
-def assert_role(allowed_roles: str | list[str] = None):
+def assert_role(allowed_roles: Union[str, List[str]] = None):
     def assert_role_inner(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):

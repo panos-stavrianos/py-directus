@@ -1,6 +1,10 @@
 from __future__ import annotations
 
-from typing import Optional, TYPE_CHECKING, Type
+from typing import (
+    TYPE_CHECKING, 
+    Union, Optional, Type, List, 
+    overload
+)
 
 import json_fix
 from pydantic import BaseModel
@@ -19,13 +23,13 @@ class DirectusRequest:
     Class to manage request to the Directus API.
     """
 
-    def __init__(self, directus: Directus, collection: str, collection_class: Type[BaseModel] | str | None = None):
+    def __init__(self, directus: Directus, collection: str, collection_class: Optional[Union[Type[BaseModel], str]] = None):
         json_fix.fix_it()
 
         self.directus: Directus = directus
         self.collection: str = collection
         self.params: dict = {}
-        self.collection_class: None | str | Type[BaseModel] = collection_class
+        self.collection_class: Optional[Union[Type[BaseModel], str]] = collection_class
 
     @property
     def uri(self):
@@ -81,7 +85,7 @@ class DirectusRequest:
         self.params['sort'].append(f'{"" if asc else "-"}{field}')
         return self
 
-    def search(self, search: str | int = None):
+    def search(self, search: Optional[Union[str, int]] = None):
         self.params['search'] = search
         return self
 
@@ -139,7 +143,11 @@ class DirectusRequest:
         self.params['meta'] = "*"
         return self
 
-    async def read(self, id: Optional[int | str] = None, method: str = "search") -> DirectusResponse:
+    async def read(self, id: Optional[Union[int, str]] = None, method: str = "search") -> DirectusResponse:
+        """
+        Send query to server.
+        """
+
         method = "get" if id is not None else method
         if method == "search":
             response = await self.directus.connection.request(
@@ -154,13 +162,21 @@ class DirectusRequest:
             raise ValueError(f"Method '{method}' not supported")
         return DirectusResponse(response, query=self.params, collection=self.collection_class)
 
-    async def create(self, items: dict | list[dict]) -> DirectusResponse:
+    async def create(self, items: Union[dict, List[dict]]) -> DirectusResponse:
         assert isinstance(items, (dict, list))
 
         response = await self.directus.connection.post(self.uri, json=items, auth=self.directus.auth)
         return DirectusResponse(response, collection=self.collection_class)
 
-    async def update(self, ids: int | str | None | list[int | str], items: dict | list) -> DirectusResponse:
+    @overload
+    async def update(self, ids: Optional[Union[int, str]], items: dict) -> DirectusResponse:
+        ...
+
+    @overload
+    async def update(self, ids: List[Union[int, str]], items: list) -> DirectusResponse:
+        ...
+
+    async def update(self, ids, items):
         if isinstance(ids, (int, str, None)) and isinstance(items, dict):
             if ids is None:
                 response = await self.directus.connection.patch(self.uri, json=items, auth=self.directus.auth)
@@ -183,7 +199,7 @@ class DirectusRequest:
             f"You provided: ids={type(ids)}, items={type(items)}"
         )
 
-    async def delete(self, ids: int | str | list[int | str]) -> DirectusResponse:
+    async def delete(self, ids: Union[int, str, List[Union[int, str]]]) -> DirectusResponse:
         if isinstance(ids, (int, str)):
             response = await self.directus.connection.delete(f'{self.uri}/{ids}', auth=self.directus.auth)
             return DirectusResponse(response, collection=self.collection_class)

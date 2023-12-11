@@ -1,3 +1,4 @@
+from typing import Union, Optional
 
 FITTING_OPTIONS = ["cover", "contain", "inside", "outside"]
 IMAGE_FORMAT_OPTIONS = ["auto", "jpg", "png", "webp", "tiff"]
@@ -7,11 +8,11 @@ class ImageFileTransform:
 
     def __init__(
         self, 
-        fit: str | None = None, 
-        width: int | None = None, height: int | None = None, 
-        quality: int | None = None, 
-        withoutEnlargement: bool | None = None, 
-        img_format: str | None = None, 
+        fit: Optional[str] = None, 
+        width: Optional[int] = None, height: Optional[int] = None, 
+        quality: Optional[int] = None, 
+        withoutEnlargement: Optional[bool] = None, 
+        img_format: Optional[str] = None, 
         **kwargs
     ):
         parameters = {

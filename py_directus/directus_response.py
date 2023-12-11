@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from typing import Any, TypeVar, List
+from typing import Any, Union, TypeVar, List
 
 try:
     from rich import print  # noqa
@@ -37,7 +37,7 @@ class DirectusResponse:
     def _parse_item_as_object(self, collection: T) -> T:
         return collection(**self._parse_item_as_dict())
 
-    def _parse_items_as_dict(self) -> list[dict]:
+    def _parse_items_as_dict(self) -> List[dict]:
         if isinstance(self.json['data'], list):
             return self.json['data']
         return [self.json['data']]
@@ -47,35 +47,35 @@ class DirectusResponse:
         return TypeAdapter(List[collection]).validate_python(items_data)
 
     @property
-    def item(self) -> dict[Any, Any] | None | Any:  # noqa
+    def item(self) -> Union[dict[Any, Any], Any, None]:  # noqa
         if 'data' not in self.json or self.json['data'] in [None, [], {}]:
             return None
         if self.collection:
             return self._parse_item_as_object(self.collection)
         return self._parse_item_as_dict()
 
-    def item_as(self, collection: T) -> T | None:  # noqa
+    def item_as(self, collection: T) -> Union[T, None]:  # noqa
         item_data = self._parse_item_as_dict()
         return None if item_data is None else collection(**item_data)
 
-    def item_as_dict(self) -> dict | None:  # noqa
+    def item_as_dict(self) -> Union[dict, None]:  # noqa
         if "data" not in self.json or self.json['data'] in [None, [], {}]:
             return None
         return self._parse_item_as_dict()
 
     @property
-    def items(self) -> list[dict[Any, Any]] | None | Any:  # noqa
+    def items(self) -> Union[List[dict[Any, Any]], Any, None]:  # noqa
         if "data" not in self.json or self.json['data'] in [None, [], {}]:
             return None
         if self.collection:
             return self._parse_items_as_objects(self.collection)
         return self._parse_items_as_dict()
 
-    def items_as(self, collection: T) -> List[T] | None:  # noqa
+    def items_as(self, collection: T) -> Union[List[T], None]:  # noqa
         items_data = self._parse_items_as_dict()
         return None if items_data is None else TypeAdapter(List[collection]).validate_python(items_data)
 
-    def items_as_dict(self) -> list[dict] | None:  # noqa
+    def items_as_dict(self) -> Union[List[dict], None]:  # noqa
         if "data" not in self.json or self.json['data'] in [None, [], {}]:
             return None
         return self._parse_items_as_dict()

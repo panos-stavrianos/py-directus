@@ -1,6 +1,6 @@
 import asyncio
 from enum import Enum
-from typing import Optional, List
+from typing import Union, Optional, List
 
 from py_directus.models import Role
 from py_directus import Directus
@@ -49,7 +49,7 @@ class RoleToID:
 
         return closure().__await__()
 
-    def __call__(self, role: str | Roles) -> [str]:  # noqa
+    def __call__(self, role: Union[str, Roles]) -> [str]:  # noqa
         if isinstance(role, Roles):
             role = role.value
         return [self.roles[role]]
