@@ -14,6 +14,7 @@ from py_directus.directus_response import DirectusResponse
 from py_directus.models import Role, User
 from py_directus.transformation import ImageFileTransform
 from py_directus.storage import save_file
+from py_directus.cache import SimpleMemoryCache
 from py_directus.utils import parse_translations
 
 
@@ -51,6 +52,8 @@ class Directus:
         self.connection = connection or AsyncClient()
         self.auth = BearerAuth(self._token)
         self.token = self.static_token or None
+
+        self.cache = SimpleMemoryCache()
 
     def __await__(self):
         async def closure():
@@ -197,6 +200,16 @@ class Directus:
             f.close()
 
         return response
+
+    async def clear_cache(self, clear_all: bool=False):
+        """
+        Clear cache:
+
+        :param clear_all: If set to `True`, absolutely ALL records will be deleted.
+        """
+        clr_res = await self.cache.clear(clear_all)
+
+        return clr_res
 
     async def __aenter__(self):
         return self

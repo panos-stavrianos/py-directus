@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import json
+import json as jsonlib
 from typing import Any, Union, TypeVar, List
 
 try:
@@ -17,17 +17,26 @@ from pydantic import BaseModel, TypeAdapter
 class DirectusResponse:
     T = TypeVar("T", bound=BaseModel)
 
-    def __init__(self, response: Response, query: dict = None, collection: Any = None):
-        self.response: Response = response
-        self.query: dict = query
-        self.collection: Any = collection
+    def __init__(self, response: Response = None, query: dict = None, collection: Any = None):
+        self.response: Response = None
+        self.response_status: int = None
+        self.query: dict = None
+        self.collection: Any = None
+        self.json: dict = None
 
-        try:
-            self.json: dict = response.json()
-            if self.is_error:
-                raise DirectusException(self)
-        except json.decoder.JSONDecodeError:
-            self.json = {}
+        # In case we were given a response, then it is not a cache response
+        if response:
+            self.response = response
+            self.response_status = getattr(response, 'status_code', 0)
+            self.query = query
+            self.collection = collection
+
+            try:
+                self.json = response.json()
+                if self.is_error:
+                    raise DirectusException(self)
+            except jsonlib.decoder.JSONDecodeError:
+                self.json = {}
 
     def _parse_item_as_dict(self) -> dict:
         if isinstance(self.json['data'], list):
@@ -48,7 +57,7 @@ class DirectusResponse:
 
     @property
     def item(self) -> Union[dict[Any, Any], Any, None]:  # noqa
-        if 'data' not in self.json or self.json['data'] in [None, [], {}]:
+        if "data" not in self.json or self.json['data'] in [None, [], {}]:
             return None
         if self.collection:
             return self._parse_item_as_object(self.collection)
@@ -92,7 +101,7 @@ class DirectusResponse:
 
     @property
     def status_code(self) -> int:
-        return getattr(self.response, 'status_code', 0)
+        return self.response_status
 
     @property
     def is_success(self) -> bool:
@@ -108,6 +117,32 @@ class DirectusResponse:
             return self.json['errors']
         else:
             return []
+
+    def to_json(self):
+        data = {
+            "response_status": self.response_status,
+            "query": self.query,
+            # "collection": self.collection,
+            "json": self.json
+        }
+
+        if self.collection:
+            print(".".join([self.collection.__module__, self.collection.__name__]))
+
+        return jsonlib.dumps(data)
+
+    @classmethod
+    def from_json(cls, json_data: str):
+        data = jsonlib.loads(json_data)
+
+        new_obj = cls()
+
+        new_obj.response_status = data['response_status']
+        new_obj.query = data['query']
+        # new_obj.collection = data['collection']
+        new_obj.json = data['json']
+
+        return new_obj
 
     def get_explanation(self, show_headers=True, show_cookies=True) -> dict:
         needed_data = {}
@@ -156,7 +191,7 @@ class DirectusResponse:
             ]
 
         # data
-        response_data.update(self.response.json())
+        response_data.update(self.json)
 
         needed_data["Response"] = response_data
 

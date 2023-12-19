@@ -29,7 +29,7 @@ Dependencies:
 
 ## Installation
 
-You can install the library directly from pypi using pip:
+You can install the library directly from [pypi](https://pypi.org/project/py-directus/) using pip:
 
 ```shell
 $ pip install py-directus

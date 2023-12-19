@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json as jsonlib
+import asyncio
 from typing import (
     TYPE_CHECKING, 
     Union, Optional, Type, List, 
@@ -22,6 +24,8 @@ class DirectusRequest:
     """
     Class to manage request to the Directus API.
     """
+    _lock = asyncio.Lock()
+    _lock_2 = asyncio.Lock()
 
     def __init__(self, directus: Directus, collection: str, collection_class: Optional[Union[Type[BaseModel], str]] = None):
         json_fix.fix_it()
@@ -143,7 +147,23 @@ class DirectusRequest:
         self.params['meta'] = "*"
         return self
 
-    async def read(self, id: Optional[Union[int, str]] = None, method: str = "search") -> DirectusResponse:
+    async def read(
+        self, id: Optional[Union[int, str]] = None, method: str = "search", cache: bool = False
+    ) -> DirectusResponse:
+        """
+        Request data.
+        """
+
+        if cache:
+            d_response = await self._read_cache(id=id, method=method)
+        else:
+            d_response = await self._read(id=id, method=method)
+
+        return d_response
+
+    async def _read(
+        self, id: Optional[Union[int, str]] = None, method: str = "search", renew_cache: bool = False
+    ) -> DirectusResponse:
         """
         Send query to server.
         """
@@ -160,7 +180,63 @@ class DirectusRequest:
             response = await self.directus.connection.get(url, params=self.params, auth=self.directus.auth)
         else:
             raise ValueError(f"Method '{method}' not supported")
-        return DirectusResponse(response, query=self.params, collection=self.collection_class)
+
+        d_response = DirectusResponse(response, query=self.params, collection=self.collection_class)
+
+        # Check for existing cache and renew it
+        if not renew_cache:
+            async with self._lock_2:
+                query_key_str = self._get_query_string_key()
+
+                # Try to find query in cache
+                cached_response = await self.directus.cache.get(query_key_str)
+
+                if cached_response:
+                    # Renew the cache value
+                    await self.directus.cache.add(query_key_str, d_response.to_json())
+
+        return d_response
+
+    async def _read_cache(
+        self, id: Optional[Union[int, str]] = None, method: str = "search"
+    ) -> DirectusResponse:
+        """
+        Get response from cache.
+        """
+        async with self._lock:
+            query_key_str = self._get_query_string_key()
+
+            # Try to find query in cache
+            cached_response = await self.directus.cache.get(query_key_str)
+
+            if cached_response:
+                print("FROM CACHE")
+                d_response = DirectusResponse.from_json(cached_response)
+            else:
+                print(self.directus.cache._cache)
+                print("FROM NEW")
+                d_response = await self._read(id=id, method=method, renew_cache=True)
+
+                # Add results to cache
+                await self.directus.cache.add(query_key_str, d_response.to_json())
+
+            return d_response
+
+    async def clear_cache(self):
+        query_key_str = self._get_query_string_key()
+
+        # Try to find query in cache
+        d_res = await self.directus.cache.delete(query_key_str)
+        return d_res
+
+    def _get_query_string_key(self):
+        """
+        Generate request key for cache.
+        """
+
+        query_str = jsonlib.dumps(self.params)
+
+        return f"{self.collection}_{query_str}"
 
     async def create(self, items: Union[dict, List[dict]]) -> DirectusResponse:
         assert isinstance(items, (dict, list))
