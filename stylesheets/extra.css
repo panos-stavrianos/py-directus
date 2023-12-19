@@ -1,0 +1,8 @@
+.md-typeset table:not([class]) td {
+    padding: 3px;
+    font-size: 0.8rem;
+}
+
+.md-typeset .admonition, .md-typeset details {
+    font-size: 0.8rem;
+}
