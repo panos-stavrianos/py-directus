@@ -4,9 +4,10 @@ import json as jsonlib
 import asyncio
 from typing import (
     TYPE_CHECKING, 
-    Union, Optional, Type, List, 
+    Union, Optional, Type, List, Tuple, 
     overload
 )
+import websockets
 
 import json_fix
 from pydantic import BaseModel
@@ -17,6 +18,7 @@ from py_directus.aggregator import Agg
 # from py_directus.operators import AggregationOperators
 
 if TYPE_CHECKING:
+    from websockets import Data, WebSocketClientProtocol
     from py_directus import Directus
 
 
@@ -237,6 +239,39 @@ class DirectusRequest:
         query_str = jsonlib.dumps(self.params)
 
         return f"{self.collection}_{query_str}"
+
+    async def subscribe(self, uri: str, event_type: Optional[str]=None, uid: Optional[str]=None) -> Tuple[Data, WebSocketClientProtocol]:
+        """
+        Returns authentication confirmation message and the client websocket.
+        """
+        ws = await websockets.connect(uri)
+
+        # Authentication
+        auth_data = jsonlib.dumps({
+            "type": "auth", 
+            "access_token": self.directus._token
+        })
+
+        await ws.send(auth_data)
+        auth_res = await ws.recv()
+
+        # Subscription
+        subsc_data = {
+            "type": "subscribe",
+            "collection": self.collection,
+            "query": self.params
+        }
+
+        if event_type:
+            subsc_data['event'] = event_type
+
+        if uid:
+            subsc_data['uid'] = uid
+
+        await ws.send(jsonlib.dumps(subsc_data))
+        subsc_res = await ws.recv()
+
+        return auth_res, ws
 
     async def create(self, items: Union[dict, List[dict]]) -> DirectusResponse:
         assert isinstance(items, (dict, list))
