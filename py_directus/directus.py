@@ -53,13 +53,14 @@ class Directus:
         self.auth = BearerAuth(self._token)
         self.token = self.static_token or None
 
-        self.cache = SimpleMemoryCache()
+        self.cache: SimpleMemoryCache = None
 
     def __await__(self):
         async def closure():
             # Perform login when credentials are present and no token
             if self.email and self.password and not self._token:
                 await self.login()
+                self.cache = SimpleMemoryCache(self._token)
             return self
 
         return closure().__await__()
@@ -234,11 +235,11 @@ class Directus:
         url = f"{self.url}/{endpoint}"
 
         r = await self.connection.post(url, json=payload)
-        response = DirectusResponse(r)
+        response = DirectusResponse(r).item
 
-        self._token = response.item['access_token']
-        self.refresh_token = response.item['refresh_token']
-        self.expires = response.item['expires']  # in milliseconds
+        self._token = response['access_token']
+        self.refresh_token = response['refresh_token']
+        self.expires = response['expires']  # in milliseconds
         self.expiration_time: datetime.datetime = (
             datetime.datetime.now() + datetime.timedelta(milliseconds=self.expires)
         )
@@ -274,6 +275,9 @@ class Directus:
         self.refresh_token = None
         self.expires = None
         self.expiration_time = None
+
+        # Clear cache
+        await self.cache.clear()
 
         return response.status_code == 200
 

@@ -41,10 +41,10 @@ class SimpleMemoryCache(Base):
     # cache persistent throughout class instances, thread-safe by default
     _cache: Dict[str, Tuple[datetime, Union[str, bytes]]] = {}
 
-    def __init__(self, timeout: int=3600):
+    def __init__(self, unique_id: str, timeout: int=3600):
         self._timeout = timeout
 
-        self.unique_id = self._get_unique_id()
+        self.unique_id = unique_id
 
     async def add(self, query: str, content: Union[str, bytes]):
         q_key = self._get_query_key(query)
@@ -104,30 +104,31 @@ class SimpleMemoryCache(Base):
             return True
         return False
 
-    def _get_unique_id(self) -> str:
-        """
-        Expose the version prefix to be used in content serialization.
-        """
-        length = 25
-        retries = 25
+    # NOTE: Deprecated
+    # def _get_unique_id(self) -> str:
+    #     """
+    #     Expose the version prefix to be used in content serialization.
+    #     """
+    #     length = 25
+    #     retries = 25
 
-        is_unique = False
-        unique_id = None
+    #     is_unique = False
+    #     unique_id = None
 
-        while retries > 0:
-            unique_id = get_random_string(length)
+    #     while retries > 0:
+    #         unique_id = get_random_string(length)
 
-            if unique_id not in self._cache:
-                is_unique = True
-                break
+    #         if unique_id not in self._cache:
+    #             is_unique = True
+    #             break
 
-            retries -= 1
+    #         retries -= 1
 
-        # In case there was no spare id
-        if not is_unique:
-            raise Exception(f"No unique id could be found within the specified {retries} retries")
+    #     # In case there was no spare id
+    #     if not is_unique:
+    #         raise Exception(f"No unique id could be found within the specified {retries} retries")
 
-        return unique_id
+    #     return unique_id
 
     def _get_query_key(self, query: str) -> str:
         """
