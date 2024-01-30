@@ -29,10 +29,10 @@ class DirectusRequest:
     _lock = asyncio.Lock()
     _lock_2 = asyncio.Lock()
 
-    def __init__(self, directus: Directus, collection: str, collection_class: Optional[Union[Type[BaseModel], str]] = None):
+    def __init__(self, directus: 'Directus', collection: str, collection_class: Optional[Union[Type[BaseModel], str]] = None):
         json_fix.fix_it()
 
-        self.directus: Directus = directus
+        self.directus: 'Directus' = directus
         self.collection: str = collection
         self.params: dict = {}
         self.collection_class: Optional[Union[Type[BaseModel], str]] = collection_class
@@ -240,7 +240,7 @@ class DirectusRequest:
 
         return f"{self.collection}_{query_str}"
 
-    async def subscribe(self, uri: str, event_type: Optional[str]=None, uid: Optional[str]=None) -> Tuple[Data, WebSocketClientProtocol]:
+    async def subscribe(self, uri: str, event_type: Optional[str]=None, uid: Optional[str]=None) -> Tuple['Data', 'WebSocketClientProtocol']:
         """
         Returns authentication confirmation message and the client websocket.
         """

@@ -2,14 +2,14 @@ import functools
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING, Union, Optional, Type
 
-from fast_api import globals as glob_vars
+from . import globals as glob_vars
 
 if TYPE_CHECKING:
     from fastapi import FastAPI
 
 
 @asynccontextmanager
-async def _lifespan(app: Union[FastAPI, None] = None, directus_base_url: str = None, directus_admin_token: str = None, *args, **kwargs):
+async def _lifespan(app: Union['FastAPI', None] = None, directus_base_url: str = None, directus_admin_token: str = None, *args, **kwargs):
     """
     Only when used directly as context manager we have access to the `FastAPI` instance through the `app` argument.
     """
@@ -50,7 +50,7 @@ def lifespan(*og_args, **og_kwargs):
     return wrapper
 
 
-def init_directus(app: FastAPI, directus_base_url: str, directus_admin_token: str):
+def init_directus(app: 'FastAPI', directus_base_url: str, directus_admin_token: str):
     """
     Wrap the lifespan context manager of FastAPI with our own.
     """
