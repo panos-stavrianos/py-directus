@@ -26,7 +26,7 @@ async def _lifespan(app: Union[FastAPI, None] = None, directus_base_url: str = N
         if glob_vars.directus_public:
             await glob_vars.directus_public.logout()
         if glob_vars.directus_session:
-            await glob_vars.directus_session.close_connection()
+            await glob_vars.directus_session.aclose()
 
 
 def lifespan(*og_args, **og_kwargs):
