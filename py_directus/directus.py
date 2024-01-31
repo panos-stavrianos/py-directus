@@ -42,17 +42,22 @@ class Directus:
         self.refresh_token = refresh_token
         self.url: str = url
 
+        # Credentials
         self._token: Optional[str] = None
         self._user: Optional[User] = None
         self._user_model: Type[User] = user_model
 
         self.email = email
         self.password = password
+        
         self.static_token = token
+        self.token = token or None
+
+        # Connection
         self.connection = connection or AsyncClient()
         self.auth = BearerAuth(self._token)
-        self.token = self.static_token or None
 
+        # Cache
         self.cache: SimpleMemoryCache = None
 
     def __await__(self):
@@ -60,6 +65,7 @@ class Directus:
             # Perform login when credentials are present and no token
             if self.email and self.password and not self._token:
                 await self.login()
+            if not self.cache:
                 self.cache = SimpleMemoryCache(self._token)
             return self
 
@@ -277,7 +283,8 @@ class Directus:
         self.expiration_time = None
 
         # Clear cache
-        await self.cache.clear()
+        if self.cache:
+            await self.cache.clear()
 
         return response.status_code == 200
 
