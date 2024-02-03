@@ -291,52 +291,66 @@ class DirectusRequest:
 
         return auth_res, ws
 
-    async def create(self, items: Union[dict, List[dict]]) -> DirectusResponse:
+    async def create(self, items: Union[dict, List[dict]], as_task: bool = False) -> DirectusResponse:
         assert isinstance(items, (dict, list))
 
-        response = await self.directus.connection.post(self.uri, json=items, auth=self.directus.auth)
-        return DirectusResponse(response, collection=self.collection_class)
+        response = self.directus.connection.post(self.uri, json=items, auth=self.directus.auth)
+        d_response = DirectusResponse(response, collection=self.collection_class)
+        if as_task:
+            self.directus.tasks.append(d_response)
+        else:
+            await d_response.gather_response()
+        return d_response
 
     @overload
-    async def update(self, ids: Optional[Union[int, str]], items: dict) -> DirectusResponse:
+    async def update(self, ids: Optional[Union[int, str]], items: dict, as_task: bool = False) -> DirectusResponse:
         ...
 
     @overload
-    async def update(self, ids: List[Union[int, str]], items: list) -> DirectusResponse:
+    async def update(self, ids: List[Union[int, str]], items: list, as_task: bool = False) -> DirectusResponse:
         ...
 
-    async def update(self, ids, items):
+    async def update(self, ids, items, as_task: bool = False) -> DirectusResponse:
         if isinstance(ids, (int, str, None)) and isinstance(items, dict):
             if ids is None:
-                response = await self.directus.connection.patch(self.uri, json=items, auth=self.directus.auth)
+                response = self.directus.connection.patch(self.uri, json=items, auth=self.directus.auth)
             else:
-                response = await self.directus.connection.patch(f"{self.uri}/{ids}", json=items,
-                                                                auth=self.directus.auth)
-            return DirectusResponse(response, collection=self.collection_class)
+                response = self.directus.connection.patch(f"{self.uri}/{ids}", json=items, auth=self.directus.auth)
+            d_response = DirectusResponse(response, collection=self.collection_class)
         elif isinstance(ids, list) and isinstance(items, list):
             payload = {
                 "keys": ids,
                 "data": items
             }
-            response = await self.directus.connection.patch(self.uri, json=payload, auth=self.directus.auth)
-            return DirectusResponse(response, collection=self.collection_class)
+            response = self.directus.connection.patch(self.uri, json=payload, auth=self.directus.auth)
+            d_response = DirectusResponse(response, collection=self.collection_class)
+        else:
+            raise TypeError(
+                f"This method supports the following argument pairs: \n"
+                f"ids: int | str | None, items: dict\n"
+                f"ids: list[int | str], items: list\n"
+                f"You provided: ids={type(ids)}, items={type(items)}"
+            )
+        if as_task:
+            self.directus.tasks.append(d_response)
+        else:
+            await d_response.gather_response()
+        return d_response
 
-        raise TypeError(
-            f"This method supports the following argument pairs: \n"
-            f"ids: int | str | None, items: dict\n"
-            f"ids: list[int | str], items: list\n"
-            f"You provided: ids={type(ids)}, items={type(items)}"
-        )
-
-    async def delete(self, ids: Union[int, str, List[Union[int, str]]]) -> DirectusResponse:
+    async def delete(self, ids: Union[int, str, List[Union[int, str]]], as_task: bool = False) -> DirectusResponse:
         if isinstance(ids, (int, str)):
-            response = await self.directus.connection.delete(f'{self.uri}/{ids}', auth=self.directus.auth)
-            return DirectusResponse(response, collection=self.collection_class)
+            response = self.directus.connection.delete(f'{self.uri}/{ids}', auth=self.directus.auth)
+            d_response = DirectusResponse(response, collection=self.collection_class)
         elif isinstance(ids, list):
-            response = await self.directus.connection.delete(self.uri, json=ids, auth=self.directus.auth)
-            return DirectusResponse(response, collection=self.collection_class)
-
-        raise TypeError(
-            f"The ids argument must be one of the following types: int | str | list[int | str]\n"
-            f"You provided: {ids}"
-        )
+            response = self.directus.connection.delete(self.uri, json=ids, auth=self.directus.auth)
+            d_response = DirectusResponse(response, collection=self.collection_class)
+        else:
+            raise TypeError(
+                f"The ids argument must be one of the following types: int | str | list[int | str]\n"
+                f"You provided: {ids}"
+            )
+        if as_task:
+            self.directus.tasks.append(d_response)
+        else:
+            await d_response.gather_response()
+        return d_response
