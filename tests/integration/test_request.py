@@ -2,14 +2,13 @@ import os
 import unittest
 
 from dotenv import load_dotenv
+
 try:
     from rich import print  # noqa
 except:
     pass
 
 from py_directus import F, Directus
-from py_directus.operators import AggregationOperators
-
 
 load_dotenv()
 
@@ -133,3 +132,26 @@ class TestRequest(unittest.IsolatedAsyncioTestCase):
         self.assertIsNotNone(result_items)
 
         print(f"test_group_by: {result_items}")
+
+    async def test_gather_response(self):
+        # await for response
+        res_1 = await self.directus.collection("directus_users").group_by("first_name", "last_name").read()
+        res_2 = await self.directus.collection("directus_users").limit(10).read()
+        res_1 = res_1.items
+        res_2 = res_2.items
+
+        # gather responses and await for them
+        batch_1 = await self.directus.collection("directus_users").group_by("first_name", "last_name").read(
+            as_task=True)
+        batch_2 = await self.directus.collection("directus_users").limit(10).read(as_task=True)
+        await self.directus.gather()
+        batch_1 = batch_1.items
+        batch_2 = batch_2.items
+
+        self.assertIsNotNone(res_1)
+        self.assertIsNotNone(res_2)
+        self.assertIsNotNone(batch_1)
+        self.assertIsNotNone(batch_2)
+        # check if responses are equal
+        self.assertEqual(res_1, batch_1)
+        self.assertEqual(res_2, batch_2)

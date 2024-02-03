@@ -1,20 +1,21 @@
 from __future__ import annotations
 
-import json as jsonlib
 import asyncio
+import json as jsonlib
 from typing import (
-    TYPE_CHECKING, 
-    Union, Optional, Type, List, Tuple, 
+    TYPE_CHECKING,
+    Union, Optional, Type, List, Tuple,
     overload
 )
-import websockets
 
 import json_fix
+import websockets
 from pydantic import BaseModel
 
+from py_directus.aggregator import Agg
 from py_directus.directus_response import DirectusResponse
 from py_directus.filter import F
-from py_directus.aggregator import Agg
+
 # from py_directus.operators import AggregationOperators
 
 if TYPE_CHECKING:
@@ -29,7 +30,8 @@ class DirectusRequest:
     _lock = asyncio.Lock()
     _lock_2 = asyncio.Lock()
 
-    def __init__(self, directus: 'Directus', collection: str, collection_class: Optional[Union[Type[BaseModel], str]] = None):
+    def __init__(self, directus: 'Directus', collection: str,
+                 collection_class: Optional[Union[Type[BaseModel], str]] = None):
         json_fix.fix_it()
 
         self.directus: 'Directus' = directus
@@ -150,21 +152,31 @@ class DirectusRequest:
         return self
 
     async def read(
-        self, id: Optional[Union[int, str]] = None, method: str = "search", cache: bool = False
+            self, id: Optional[Union[int, str]] = None, method: str = "search", cache: bool = False,
+            as_task: bool = False
     ) -> DirectusResponse:
         """
         Request data.
-        """
 
+        :param id: The id of the item to retrieve
+        :param method: The method to use for the request (search, get)
+        :param cache: Whether to use the cache or not
+        :param as_task: Whether to add the request to the tasks list or not (for batch requests)
+
+        :return: The DirectusResponse object
+
+        IMPORTANT: cache and as_task cannot be used together, if both are set to True, the cache will take precedence and the request will be awaited.
+        """
         if cache:
             d_response = await self._read_cache(id=id, method=method)
         else:
-            d_response = await self._read(id=id, method=method)
+            d_response = await self._read(id=id, method=method, as_task=as_task)
 
         return d_response
 
     async def _read(
-        self, id: Optional[Union[int, str]] = None, method: str = "search", renew_cache: bool = False
+            self, id: Optional[Union[int, str]] = None, method: str = "search", renew_cache: bool = False,
+            as_task: bool = False
     ) -> DirectusResponse:
         """
         Send query to server.
@@ -172,18 +184,23 @@ class DirectusRequest:
 
         method = "get" if id is not None else method
         if method == "search":
-            response = await self.directus.connection.request(
+            response = self.directus.connection.request(
                 "search", self.uri,
                 json={"query": self.params},
                 auth=self.directus.auth
             )
         elif method == "get":
             url = f"{self.uri}/{id}" if id is not None else self.uri
-            response = await self.directus.connection.get(url, params=self.params, auth=self.directus.auth)
+            response = self.directus.connection.get(url, params=self.params, auth=self.directus.auth)
         else:
             raise ValueError(f"Method '{method}' not supported")
 
         d_response = DirectusResponse(response, query=self.params, collection=self.collection_class)
+
+        if as_task:
+            self.directus.tasks.append(d_response)
+        else:
+            await d_response.gather_response()
 
         # Check for existing cache and renew it
         if not renew_cache:
@@ -200,7 +217,7 @@ class DirectusRequest:
         return d_response
 
     async def _read_cache(
-        self, id: Optional[Union[int, str]] = None, method: str = "search"
+            self, id: Optional[Union[int, str]] = None, method: str = "search"
     ) -> DirectusResponse:
         """
         Get response from cache.
@@ -240,7 +257,8 @@ class DirectusRequest:
 
         return f"{self.collection}_{query_str}"
 
-    async def subscribe(self, uri: str, event_type: Optional[str]=None, uid: Optional[str]=None) -> Tuple['Data', 'WebSocketClientProtocol']:
+    async def subscribe(self, uri: str, event_type: Optional[str] = None, uid: Optional[str] = None) -> Tuple[
+        'Data', 'WebSocketClientProtocol']:
         """
         Returns authentication confirmation message and the client websocket.
         """
@@ -248,7 +266,7 @@ class DirectusRequest:
 
         # Authentication
         auth_data = jsonlib.dumps({
-            "type": "auth", 
+            "type": "auth",
             "access_token": self.directus._token
         })
 

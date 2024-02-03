@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import inspect
 import json as jsonlib
-from typing import Any, Union, TypeVar, List
+from typing import Any, Union, TypeVar, List, Coroutine
 
 try:
     from rich import print  # noqa
@@ -17,26 +18,31 @@ from pydantic import BaseModel, TypeAdapter
 class DirectusResponse:
     T = TypeVar("T", bound=BaseModel)
 
-    def __init__(self, response: Response = None, query: dict = None, collection: Any = None):
-        self.response: Response = None
-        self.response_status: int = None
-        self.query: dict = None
-        self.collection: Any = None
-        self.json: dict = None
+    def __init__(self, response: Union[Response, Coroutine, None] = None, query: dict = None, collection: Any = None):
+        self.response: Union[Response, Coroutine, None] = response
+        self.response_status: Union[int, None] = None
+        self.query: dict = query
+        self.collection: Any = collection
+        self.json: Union[dict, None] = None
 
+        self.parse_response()
+
+    def parse_response(self):
         # In case we were given a response, then it is not a cache response
-        if response:
-            self.response = response
-            self.response_status = getattr(response, 'status_code', 0)
-            self.query = query
-            self.collection = collection
+        if self.response and not inspect.iscoroutine(self.response):
+            self.response_status = getattr(self.response, 'status_code', 0)
 
             try:
-                self.json = response.json()
+                self.json = self.response.json()
                 if self.is_error:
                     raise DirectusException(self)
             except jsonlib.decoder.JSONDecodeError:
                 self.json = {}
+
+    async def gather_response(self):
+        if inspect.iscoroutine(self.response):
+            self.response = await self.response
+            self.parse_response()
 
     def _parse_item_as_dict(self) -> dict:
         if isinstance(self.json['data'], list):
@@ -154,7 +160,7 @@ class DirectusResponse:
         }
 
         ''' Request '''
-        
+
         resp_request = self.response.request
 
         request_data = {
@@ -205,7 +211,7 @@ class DirectusResponse:
 
         for k, v in needed_data.items():
             console.print(k, style="bold")
-            
+
             if k == "Query":
                 for q_k, q_v in v.items():
                     console.print(q_k, style="bold")
@@ -224,9 +230,9 @@ class DirectusException(Exception):
         self.code = None
 
         if len(response.errors) > 0 and (
-            "message" in response.errors[0] 
-            and "extensions" in response.errors[0] 
-            and "code" in response.errors[0]['extensions']
+                "message" in response.errors[0]
+                and "extensions" in response.errors[0]
+                and "code" in response.errors[0]['extensions']
         ):
             self.message = response.errors[0]['message']
             self.code = response.errors[0]['extensions']['code']

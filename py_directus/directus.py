@@ -1,20 +1,21 @@
-import os
-import re
+import asyncio
 import datetime
 import inspect
-import magic
+import os
+import re
 # import aiofiles
 from typing import Union, Optional, Type
 
+import magic
 from httpx import AsyncClient, Auth, Response
 from pydantic import BaseModel
 
+from py_directus.cache import SimpleMemoryCache
 from py_directus.directus_request import DirectusRequest
 from py_directus.directus_response import DirectusResponse
 from py_directus.models import Role, User
-from py_directus.transformation import ImageFileTransform
 from py_directus.storage import save_file
-from py_directus.cache import SimpleMemoryCache
+from py_directus.transformation import ImageFileTransform
 from py_directus.utils import parse_translations
 
 
@@ -34,8 +35,8 @@ class Directus:
     """
 
     def __init__(
-        self, url: str, email: str = None, password: str = None, token: str = None, refresh_token: str = None,
-        connection: AsyncClient = None, user_model: Type[User] = User
+            self, url: str, email: str = None, password: str = None, token: str = None, refresh_token: str = None,
+            connection: AsyncClient = None, user_model: Type[User] = User
     ):
         self.expires = None
         self.expiration_time = None
@@ -49,7 +50,7 @@ class Directus:
 
         self.email = email
         self.password = password
-        
+
         self.static_token = token
         self.token = token or None
 
@@ -59,6 +60,17 @@ class Directus:
 
         # Cache
         self.cache: SimpleMemoryCache = None
+
+        # Any async tasks for later gathering
+        self.tasks: list[DirectusResponse] = []
+
+    async def gather(self):
+        """
+        Gather all async tasks.
+        """
+        print("Gathering tasks", self.tasks)
+        await asyncio.gather(*[task.gather_response() for task in self.tasks])
+        self.tasks.clear()
 
     def __await__(self):
         async def closure():
@@ -140,13 +152,13 @@ class Directus:
         return response_obj
 
     async def download_file(
-        self, file_id: str, 
-        fit: Optional[str] = None, 
-        width: Optional[int] = None, height: Optional[int] = None, 
-        quality: Optional[int] = None, 
-        withoutEnlargement: Optional[bool] = None, 
-        img_format: Optional[str] = None, 
-        **kwargs
+            self, file_id: str,
+            fit: Optional[str] = None,
+            width: Optional[int] = None, height: Optional[int] = None,
+            quality: Optional[int] = None,
+            withoutEnlargement: Optional[bool] = None,
+            img_format: Optional[str] = None,
+            **kwargs
     ) -> Response:
         url = f"{self.url}/assets/{file_id}"
 
@@ -156,11 +168,11 @@ class Directus:
 
         # Image transformation parameters
         img_transform_parameters = ImageFileTransform(
-            fit=fit, 
-            width=width, 
-            quality=quality, 
-            withoutEnlargement=withoutEnlargement, 
-            img_format=img_format, 
+            fit=fit,
+            width=width,
+            quality=quality,
+            withoutEnlargement=withoutEnlargement,
+            img_format=img_format,
             **kwargs
         ).parameters
 
@@ -208,7 +220,7 @@ class Directus:
 
         return response
 
-    async def clear_cache(self, clear_all: bool=False):
+    async def clear_cache(self, clear_all: bool = False):
         """
         Clear cache:
 
@@ -247,7 +259,7 @@ class Directus:
         self.refresh_token = response['refresh_token']
         self.expires = response['expires']  # in milliseconds
         self.expiration_time: datetime.datetime = (
-            datetime.datetime.now() + datetime.timedelta(milliseconds=self.expires)
+                datetime.datetime.now() + datetime.timedelta(milliseconds=self.expires)
         )
         self.auth = BearerAuth(self._token)
 
