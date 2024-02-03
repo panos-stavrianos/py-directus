@@ -1,4 +1,4 @@
 from .base import DirectusModel
-from .directus import Role, User
+from .directus import BaseDirectusRole, BaseDirectusUser
 
-__all__ = DirectusModel, Role, User
+__all__ = DirectusModel, BaseDirectusRole, BaseDirectusUser

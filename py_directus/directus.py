@@ -10,10 +10,11 @@ import magic
 from httpx import AsyncClient, Auth, Response
 from pydantic import BaseModel
 
+import py_directus
+from py_directus import BaseDirectusUser
 from py_directus.cache import SimpleMemoryCache
 from py_directus.directus_request import DirectusRequest
 from py_directus.directus_response import DirectusResponse
-from py_directus.models import Role, User
 from py_directus.storage import save_file
 from py_directus.transformation import ImageFileTransform
 from py_directus.utils import parse_translations
@@ -36,7 +37,7 @@ class Directus:
 
     def __init__(
             self, url: str, email: str = None, password: str = None, token: str = None, refresh_token: str = None,
-            connection: AsyncClient = None, user_model: Type[User] = User
+            connection: AsyncClient = None
     ):
         self.expires = None
         self.expiration_time = None
@@ -45,8 +46,7 @@ class Directus:
 
         # Credentials
         self._token: Optional[str] = None
-        self._user: Optional[User] = None
-        self._user_model: Type[User] = user_model
+        self._user: Optional[BaseDirectusUser] = None
 
         self.email = email
         self.password = password
@@ -59,7 +59,7 @@ class Directus:
         self.auth = BearerAuth(self._token)
 
         # Cache
-        self.cache: SimpleMemoryCache = None
+        self.cache: Union[SimpleMemoryCache, None] = None
 
         # Any async tasks for later gathering
         self.tasks: list[DirectusResponse] = []
@@ -106,24 +106,18 @@ class Directus:
             f"You gave: {collection}"
         )
 
-    async def me(self, user_model: Union[Type[User], str, None] = None) -> DirectusResponse:
+    async def me(self, cache=False, as_task=False) -> DirectusResponse:
         """
         Retrieve logged in user's information.
         """
-
-        if not user_model:
-            user_model = self._user_model
-
-        response_obj = await self.collection(user_model).read("me")
-
-        return response_obj
+        return await self.collection(py_directus.DirectusUser).read("me", cache=cache, as_task=as_task)
 
     async def roles(self) -> DirectusResponse:
         """
         Retrieve list of roles in system.
         """
 
-        response_obj = await self.collection(Role).read()
+        response_obj = await self.collection(py_directus.DirectusRole).read()
         return response_obj
 
     async def read_settings(self) -> DirectusResponse:
@@ -226,9 +220,7 @@ class Directus:
 
         :param clear_all: If set to `True`, absolutely ALL records will be deleted.
         """
-        clr_res = await self.cache.clear(clear_all)
-
-        return clr_res
+        return await self.cache.clear(clear_all)
 
     async def __aenter__(self):
         return self
@@ -245,7 +237,7 @@ class Directus:
     @property
     async def user(self):
         if self._user is None:
-            user = await self.me()
+            user = await self.me(cache=True)
             self._user = user.item
         return self._user
 
@@ -283,6 +275,7 @@ class Directus:
             "mode": "json"
         }
         await self.auth_request(endpoint, payload)
+        await self.clear_cache(False)
 
     async def logout(self) -> bool:
         url = f"{self.url}/auth/logout"
@@ -296,7 +289,7 @@ class Directus:
 
         # Clear cache
         if self.cache:
-            await self.cache.clear()
+            await self.clear_cache(False)
 
         return response.status_code == 200
 

@@ -167,6 +167,7 @@ class DirectusRequest:
 
         IMPORTANT: cache and as_task cannot be used together, if both are set to True, the cache will take precedence and the request will be awaited.
         """
+        cache = False  # TODO: Temporary disable until cache is fixed
         if cache:
             d_response = await self._read_cache(id=id, method=method)
         else:
@@ -230,7 +231,7 @@ class DirectusRequest:
 
             if cached_response:
                 print("FROM CACHE")
-                d_response = DirectusResponse.from_json(cached_response)
+                d_response = DirectusResponse.from_json(cached_response, collection=self.collection_class)
             else:
                 print("FROM NEW")
                 d_response = await self._read(id=id, method=method, renew_cache=True)

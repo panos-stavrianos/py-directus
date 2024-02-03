@@ -1,25 +1,23 @@
-from typing import Optional
+from typing import Optional, Union
 
-from pydantic import ConfigDict
-
-from .base import DirectusModel
+from .base import DirectusModel, DirectusConfigDict
 
 
-class Role(DirectusModel):
+class BaseDirectusRole(DirectusModel):
     """
     Directus role model.
     """
+    model_config = DirectusConfigDict(collection="directus_roles")
 
     id: Optional[str] = None
     name: Optional[str] = None
 
-    model_config = ConfigDict(collection="directus_roles")
 
-
-class User(DirectusModel):
+class BaseDirectusUser(DirectusModel):
     """
     Directus user model.
     """
+    model_config = DirectusConfigDict(collection="directus_users")
 
     id: Optional[str] = None
     first_name: Optional[str] = None
@@ -27,9 +25,7 @@ class User(DirectusModel):
     avatar: Optional[str] = None
     description: Optional[str] = None
     email: Optional[str] = None
-    role: Optional[str] | Optional[Role] = None
+    role: Union[Optional[str], Optional[BaseDirectusRole]] = None
     status: Optional[str] = None
     title: Optional[str] = None
     token: Optional[str] = None
-
-    model_config = ConfigDict(collection="directus_users")

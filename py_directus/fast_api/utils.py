@@ -1,27 +1,26 @@
-import asyncio
 from enum import Enum
 from typing import Union, Optional, List
 
-from py_directus.models import Role
+import py_directus
 from py_directus import Directus
-from py_directus.fast_api import globals
 
 
 async def get_directus_login(email: str, password: str) -> Directus:
-    d = await Directus(globals.directus_url, connection=globals.directus_session, email=email, password=password)
-    globals.cached_directus_instances[d.token] = d
+    d = await Directus(py_directus.directus_url, connection=py_directus.directus_session, email=email,
+                       password=password)
+    py_directus.cached_directus_instances[d.token] = d
     return d
 
 
 async def get_directus_from_token(access_token, refresh_token=None) -> Optional[Directus]:
-    directus = await Directus(globals.directus_url, token=access_token, refresh_token=refresh_token,
-                              connection=globals.directus_session)
+    directus = await Directus(py_directus.directus_url, token=access_token, refresh_token=refresh_token,
+                              connection=py_directus.directus_session)
     await directus.user  # noqa
     return directus
 
 
 async def directus_logout(directus: Directus):
-    globals.cached_directus_instances.pop(directus.token, None)
+    py_directus.cached_directus_instances.pop(directus.token, None)
     await directus.logout()
 
 
@@ -36,14 +35,14 @@ class Roles(str, Enum):
 
 class RoleToID:
     def __init__(self):
-        self.roles: Optional[List[Role]] = None
+        self.roles: Optional[List[py_directus.DirectusRole]] = None
 
     def __await__(self):
         async def closure():
             if getattr(self, "roles", None) is None:
                 # Perform login manually, because the global was instantiated without awaiting
-                await globals.directus_admin
-                roles = await globals.directus_admin.collection(Role).read()
+                await py_directus.directus_admin
+                roles = await py_directus.directus_admin.collection(py_directus.DirectusRole).read()
                 self.roles = {role.name: role.id for role in roles.items}
             return self
 

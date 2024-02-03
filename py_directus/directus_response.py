@@ -138,14 +138,14 @@ class DirectusResponse:
         return jsonlib.dumps(data)
 
     @classmethod
-    def from_json(cls, json_data: str):
+    def from_json(cls, json_data: str, collection: Any = None):
         data = jsonlib.loads(json_data)
 
         new_obj = cls()
 
         new_obj.response_status = data['response_status']
         new_obj.query = data['query']
-        # new_obj.collection = data['collection']
+        new_obj.collection = collection
         new_obj.json = data['json']
 
         return new_obj

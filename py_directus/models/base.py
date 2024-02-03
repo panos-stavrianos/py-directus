@@ -1,8 +1,12 @@
 import re
-import inspect
 
+from pydantic import ConfigDict
 from pydantic._internal._config import ConfigWrapper
 from pydantic.main import _model_construction, BaseModel
+
+
+class DirectusConfigDict(ConfigDict):
+    collection: str
 
 
 class DirectusModelMetaclass(_model_construction.ModelMetaclass):
