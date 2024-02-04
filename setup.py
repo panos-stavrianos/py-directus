@@ -13,7 +13,7 @@ with open('fastapi_requirements.txt') as fastapi_requirements_file:
 readme = Path('README.md').read_text()
 version = '{{VERSION_PLACEHOLDER}}'
 if "VERSION_PLACEHOLDER" in version:
-    version = '0.0.27'
+    version = '0.0.28'
 setup(
     author="Panos Stavrianos",
     author_email='panos@orbitsystems.gr',
