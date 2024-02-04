@@ -228,6 +228,7 @@ class DirectusException(Exception):
         self.status_code = response.status_code
         self.message = None
         self.code = None
+        self.response: DirectusResponse = response
 
         if len(response.errors) > 0 and (
                 "message" in response.errors[0]
