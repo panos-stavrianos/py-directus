@@ -3,6 +3,7 @@ import datetime
 import inspect
 import os
 import re
+from io import BytesIO
 # import aiofiles
 from typing import Union, Optional, Type
 
@@ -18,6 +19,13 @@ from py_directus.directus_response import DirectusResponse
 from py_directus.storage import save_file
 from py_directus.transformation import ImageFileTransform
 from py_directus.utils import parse_translations
+
+try:
+    # from fastapi import UploadFile
+    from starlette.datastructures import UploadFile
+
+except ImportError:
+    pass
 
 
 class BearerAuth(Auth):
@@ -145,6 +153,21 @@ class Directus:
         response_obj = await self.collection("translations").create([{"key": key} for key in keys])
         return response_obj
 
+    @classmethod
+    def get_file_url(cls, file_id: str, img_format: Optional[str] = None, **kwargs) -> str:
+        url = f"{py_directus.directus_url}/assets/{file_id}"
+
+        # Image transformation parameters
+        img_transform_parameters = ImageFileTransform(
+            img_format=img_format,
+            **kwargs
+        ).parameters
+
+        if img_transform_parameters:
+            url += "?" + "&".join([f"{k}={v}" for k, v in img_transform_parameters.items()])
+
+        return url
+
     async def download_file(
             self, file_id: str,
             fit: Optional[str] = None,
@@ -185,34 +208,52 @@ class Directus:
 
         return response
 
-    async def upload_file(self, file_path: str) -> Response:
+    async def upload_file(self, to_upload: Union[str, UploadFile], folder: str = None) -> DirectusResponse:
         url = f"{self.url}/files"
+        folder_id = None
+        if folder:
+            folder_id = \
+                (await self.collection('directus_folders').fields("id").filter(name="documents").read()).item[
+                    "id"]
+            assert folder_id, f"Folder '{folder}' not found"
 
-        # file name with extension
-        file_name = os.path.basename(file_path)
-        file_mime = magic.from_file(file_path, mime=True)
+        if isinstance(to_upload, str):
+            # file name with extension
+            file_name = os.path.basename(to_upload)
+            file_mime = magic.from_file(to_upload, mime=True)
 
-        data = {
-            "title": os.path.splitext(file_name)[0],
-            # "folder": "foreign_key"
-        }
+            data = {
+                "title": os.path.splitext(file_name)[0],
+                "folder": folder_id
+            }
+            f = open(to_upload, 'rb')
+            files = {
+                "file": (file_name, f, file_mime)
+            }
+        elif isinstance(to_upload, UploadFile):
+            data = {
+                "title": os.path.splitext(to_upload.filename)[0],
+                "folder": folder_id
+            }
+            files = {
+                "file": (to_upload.filename, BytesIO(await to_upload.read()), to_upload.content_type)
+            }
+
+        else:
+            raise TypeError("The `to_upload` argument must be either a string or a fastapi.UploadFile instance.")
 
         try:
             # File
             # NOTE: CANNOT USE ASYNCHRONOUS FILES BECAUSE THEY ARE NOT SUPPORTED BY HTTPX
             # https://github.com/encode/httpx/issues/1620
-            # f = await aiofiles.open(file_path, 'rb')
-            f = open(file_path, 'rb')
-
-            files = {
-                "file": (file_name, f, file_mime)
-            }
+            # f = await aiofiles.open(to_upload, 'rb')
 
             response = await self.connection.post(url, data=data, files=files, auth=self.auth)
         finally:
-            f.close()
+            if isinstance(to_upload, str):
+                f.close()
 
-        return response
+        return DirectusResponse(response)
 
     async def clear_cache(self, clear_all: bool = False):
         """
@@ -275,7 +316,7 @@ class Directus:
             "mode": "json"
         }
         await self.auth_request(endpoint, payload)
-        await self.clear_cache(False)
+        await self.clear_cache(True)
 
     async def logout(self) -> bool:
         url = f"{self.url}/auth/logout"
