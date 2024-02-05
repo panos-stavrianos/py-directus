@@ -2,7 +2,7 @@ import functools
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING, Union, Optional, Type
 
-from py_directus import globals as glob_vars
+import py_directus as glob_vars
 
 if TYPE_CHECKING:
     from fastapi import FastAPI
