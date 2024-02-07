@@ -1,4 +1,5 @@
 from .base import DirectusModel
-from .directus import BaseDirectusRole, BaseDirectusUser
+from .directus import *
 
-__all__ = DirectusModel, BaseDirectusRole, BaseDirectusUser
+__all__ = (BaseDirectusActivity, BaseDirectusRevision, BaseDirectusRole, BaseDirectusRoles, BaseDirectusUser,
+           BaseDirectusFile, BaseDirectusFolder, BaseDirectusVersion,)

@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Optional, Union, List
 
 from .base import DirectusModel, DirectusConfigDict
@@ -36,6 +37,10 @@ class BaseDirectusRevision(DirectusModel):
     delta: Optional[dict] = None
     parent: Optional[Union[str, 'BaseDirectusRevision']] = None
     version: Optional[Union[str, 'BaseDirectusVersion']] = None
+
+
+class BaseDirectusRoles(str, Enum):
+    ADMIN = "Administrator"
 
 
 class BaseDirectusRole(DirectusModel):
@@ -102,7 +107,7 @@ class BaseDirectusFolder(DirectusModel):
     Directus folder model.
     """
     model_config = DirectusConfigDict(collection="directus_folders")
-    
+
     id: Optional[str] = None
     name: Optional[str] = None
     parent: Optional[Union[str, 'BaseDirectusFolder']] = None
@@ -113,7 +118,7 @@ class BaseDirectusVersion(DirectusModel):
     Directus version model.
     """
     model_config = DirectusConfigDict(collection="directus_versions")
-    
+
     id: Optional[str] = None
     key: Optional[str] = None
     name: Optional[str] = None
@@ -121,3 +126,17 @@ class BaseDirectusVersion(DirectusModel):
     item: Optional[str] = None
     date_created: Optional[str] = None
     user_created: Optional[Union[str, 'BaseDirectusUser']] = None
+
+
+class BaseDirectusModels:
+    """
+    Directus models.
+    """
+    DirectusActivity = BaseDirectusActivity
+    DirectusRevision = BaseDirectusRevision
+    DirectusRole = BaseDirectusRole
+    DirectusRoles = BaseDirectusRoles
+    DirectusUser = BaseDirectusUser
+    DirectusFile = BaseDirectusFile
+    DirectusFolder = BaseDirectusFolder
+    DirectusVersion = BaseDirectusVersion

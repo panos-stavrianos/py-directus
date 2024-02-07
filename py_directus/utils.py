@@ -1,6 +1,5 @@
 import secrets
-from typing import Union, Optional, List
-
+from typing import Union, List
 
 RANDOM_STRING_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 

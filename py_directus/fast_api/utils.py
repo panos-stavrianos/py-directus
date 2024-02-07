@@ -1,4 +1,3 @@
-from enum import Enum
 from typing import Union, Optional, List
 
 import py_directus
@@ -24,15 +23,6 @@ async def directus_logout(directus: Directus):
     await directus.logout()
 
 
-class Roles(str, Enum):
-    ADMIN = "Administrator"
-    COMPANY = "Company"
-    LICENSE = "License"
-    CREDIT = "Credit"
-    DEVICE = "Device"
-    PARTNER = "Partner"
-
-
 class RoleToID:
     def __init__(self):
         self.roles: Optional[List[py_directus.DirectusRole]] = None
@@ -48,8 +38,8 @@ class RoleToID:
 
         return closure().__await__()
 
-    def __call__(self, role: Union[str, Roles]) -> [str]:  # noqa
-        if isinstance(role, Roles):
+    def __call__(self, role: Union[str, py_directus.DirectusRoles]) -> [str]:  # noqa
+        if isinstance(role, py_directus.DirectusRoles):
             role = role.value
         return [self.roles[role]]
 
