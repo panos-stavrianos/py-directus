@@ -93,7 +93,6 @@ class TestClient(unittest.IsolatedAsyncioTestCase):
 
             new_token = directus.token
             self.assertIsNotNone(new_token)
-
             self.assertNotEqual(old_token, new_token)
 
     async def test_me(self):

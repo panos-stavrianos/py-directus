@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from enum import Enum
 from typing import Optional, Union, List
 
@@ -18,9 +20,9 @@ class BaseDirectusActivity(DirectusModel):
     ip: Optional[int] = None
     item: Optional[str] = None
     timestamp: Optional[Union[str, ModelDateTime.field]] = None
-    user: Optional[Union[str, 'BaseDirectusUser']] = None
+    user: Optional[Union[str, 'directus_model_settings.DirectusUser']] = None
     user_agent: Optional[str] = None
-    revisions: Optional[List[Union[int, 'BaseDirectusRevision']]] = None
+    revisions: Optional[List[Union[int, 'directus_model_settings.DirectusRevision']]] = None
 
 
 class BaseDirectusRevision(DirectusModel):
@@ -30,13 +32,13 @@ class BaseDirectusRevision(DirectusModel):
     model_config = DirectusConfigDict(collection="directus_revisions")
 
     id: Optional[int] = None
-    activity: Optional[Union[str, 'BaseDirectusActivity']] = None
+    activity: Optional[Union[str, 'directus_model_settings.DirectusActivity']] = None
     collection: Optional[str] = None
     item: Optional[str] = None
     data: Optional[dict] = None
     delta: Optional[dict] = None
-    parent: Optional[Union[str, 'BaseDirectusRevision']] = None
-    version: Optional[Union[str, 'BaseDirectusVersion']] = None
+    parent: Optional[Union[str, 'directus_model_settings.DirectusRevision']] = None
+    version: Optional[Union[str, 'directus_model_settings.DirectusVersion']] = None
 
 
 class BaseDirectusRoles(str, Enum):
@@ -53,7 +55,7 @@ class BaseDirectusRole(DirectusModel):
     name: Optional[str] = None
     icon: Optional[str] = None
     description: Optional[str] = None
-    users: Optional[List[Union[str, 'BaseDirectusUser']]] = None
+    users: Optional[List[Union[str, 'directus_model_settings.DirectusUser']]] = None
 
 
 class BaseDirectusUser(DirectusModel):
@@ -68,7 +70,7 @@ class BaseDirectusUser(DirectusModel):
     avatar: Optional[str] = None
     description: Optional[str] = None
     email: Optional[str] = None
-    role: Optional[Union[str, 'BaseDirectusRole']] = None
+    role: Optional[Union[str, 'directus_model_settings.DirectusRole']] = None
     status: Optional[str] = None
     title: Optional[str] = None
     token: Optional[str] = None
@@ -87,10 +89,10 @@ class BaseDirectusFile(DirectusModel):
     filename_download: Optional[str] = None
     title: Optional[str] = None
     type: Optional[str] = None
-    folder: Optional[Union[str, 'BaseDirectusFolder']] = None
-    uploaded_by: Optional[Union[str, 'BaseDirectusUser']] = None
+    folder: Optional[Union[str, 'directus_model_settings.DirectusFolder']] = None
+    uploaded_by: Optional[Union[str, 'directus_model_settings.DirectusUser']] = None
     uploaded_on: Optional[ModelDateTime.field] = None
-    modified_by: Optional[Union[str, 'BaseDirectusUser']] = None
+    modified_by: Optional[Union[str, 'directus_model_settings.DirectusUser']] = None
     modified_on: Optional[ModelDateTime.field] = None
     filesize: Optional[int] = None
     width: Optional[int] = None
@@ -110,7 +112,7 @@ class BaseDirectusFolder(DirectusModel):
 
     id: Optional[str] = None
     name: Optional[str] = None
-    parent: Optional[Union[str, 'BaseDirectusFolder']] = None
+    parent: Optional[Union[str, 'directus_model_settings.DirectusFolder']] = None
 
 
 class BaseDirectusVersion(DirectusModel):
@@ -125,7 +127,7 @@ class BaseDirectusVersion(DirectusModel):
     collection: Optional[str] = None
     item: Optional[str] = None
     date_created: Optional[str] = None
-    user_created: Optional[Union[str, 'BaseDirectusUser']] = None
+    user_created: Optional[Union[str, 'directus_model_settings.DirectusUser']] = None
 
 
 class BaseDirectusModels:
@@ -140,3 +142,6 @@ class BaseDirectusModels:
     DirectusFile = BaseDirectusFile
     DirectusFolder = BaseDirectusFolder
     DirectusVersion = BaseDirectusVersion
+
+
+directus_model_settings = BaseDirectusModels()
