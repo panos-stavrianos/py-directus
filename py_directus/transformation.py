@@ -5,6 +5,10 @@ IMAGE_FORMAT_OPTIONS = ["auto", "jpg", "png", "webp", "tiff"]
 
 
 class ImageFileTransform:
+    """
+    Helper class for Directus image file transformation 
+    parameters declaration.
+    """
 
     def __init__(
         self, 

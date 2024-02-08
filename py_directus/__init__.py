@@ -1,9 +1,18 @@
-from typing import Type
+from typing import Type, Union, Optional
 
 from httpx import AsyncClient
 
 from . import models as _models
 from .models.directus import *
+
+from .filter import F
+from .directus import Directus
+
+try:
+    from .fast_api.auth import HeaderAndCookieBearer
+    from .fast_api.lifespan import init_directus
+except ImportError:
+    pass
 
 DirectusActivity: Type[BaseDirectusActivity] = BaseDirectusActivity
 DirectusRevision: Type[BaseDirectusRevision] = BaseDirectusRevision
@@ -12,16 +21,13 @@ DirectusRoles: Type[BaseDirectusRoles] = BaseDirectusRoles
 DirectusUser: Type[BaseDirectusUser] = BaseDirectusUser
 DirectusFile: Type[BaseDirectusFile] = BaseDirectusFile
 DirectusFolder: Type[BaseDirectusFolder] = BaseDirectusFolder
+DirectusPermission: Type[BaseDirectusPermission] = BaseDirectusPermission
+DirectusRelationSchema: Type[BaseDirectusRelationSchema] = BaseDirectusRelationSchema
+DirectusRelationMeta: Type[BaseDirectusRelationMeta] = BaseDirectusRelationMeta
+DirectusRelation: Type[BaseDirectusRelation] = BaseDirectusRelation
+DirectusSettings: Type[BaseDirectusSettings] = BaseDirectusSettings
+DirectusTranslation: Type[BaseDirectusTranslation] = BaseDirectusTranslation
 DirectusVersion: Type[BaseDirectusVersion] = BaseDirectusVersion
-
-from .directus import Directus
-from .filter import F
-
-try:
-    from .fast_api.auth import HeaderAndCookieBearer
-    from .fast_api.lifespan import init_directus
-except ImportError:
-    pass
 
 cached_directus_instances = dict[str, Directus]()
 
@@ -46,6 +52,12 @@ def setup_models(directus_models: Type[BaseDirectusModels] = BaseDirectusModels)
     global DirectusUser
     global DirectusFile
     global DirectusFolder
+    global DirectusPermission
+    global DirectusRelationSchema
+    global DirectusRelationMeta
+    global DirectusRelation
+    global DirectusSettings
+    global DirectusTranslation
     global DirectusVersion
 
     DirectusActivity = _models.directus_model_settings.DirectusActivity = directus_models.DirectusActivity if hasattr(
@@ -69,6 +81,24 @@ def setup_models(directus_models: Type[BaseDirectusModels] = BaseDirectusModels)
     DirectusFolder = _models.directus_model_settings.DirectusFolder = directus_models.DirectusFolder if hasattr(
         directus_models,
         'DirectusFolder') else BaseDirectusVersion
+    DirectusPermission = _models.directus_model_settings.DirectusPermission = directus_models.DirectusPermission if hasattr(
+        directus_models,
+        'DirectusPermission') else BaseDirectusPermission
+    DirectusRelationSchema = _models.directus_model_settings.DirectusRelationSchema = directus_models.DirectusRelationSchema if hasattr(
+        directus_models,
+        'DirectusRelationSchema') else BaseDirectusRelationSchema
+    DirectusRelationMeta = _models.directus_model_settings.DirectusRelationMeta = directus_models.DirectusRelationMeta if hasattr(
+        directus_models,
+        'DirectusRelationMeta') else BaseDirectusRelationMeta
+    DirectusRelation = _models.directus_model_settings.DirectusRelation = directus_models.DirectusRelation if hasattr(
+        directus_models,
+        'DirectusRelation') else BaseDirectusRelation
+    DirectusSettings = _models.directus_model_settings.DirectusSettings = directus_models.DirectusSettings if hasattr(
+        directus_models,
+        'DirectusSettings') else BaseDirectusSettings
+    DirectusTranslation = _models.directus_model_settings.DirectusTranslation = directus_models.DirectusTranslation if hasattr(
+        directus_models,
+        'DirectusTranslation') else BaseDirectusTranslation
     DirectusVersion = _models.directus_model_settings.DirectusVersion = directus_models.DirectusVersion if hasattr(
         directus_models,
         'DirectusVersion') else BaseDirectusVersion
@@ -79,6 +109,12 @@ def setup_models(directus_models: Type[BaseDirectusModels] = BaseDirectusModels)
     DirectusUser.model_rebuild(raise_errors=False)
     DirectusFile.model_rebuild(raise_errors=False)
     DirectusFolder.model_rebuild(raise_errors=False)
+    DirectusPermission.model_rebuild(raise_errors=False)
+    DirectusRelationSchema.model_rebuild(raise_errors=False)
+    DirectusRelationMeta.model_rebuild(raise_errors=False)
+    DirectusRelation.model_rebuild(raise_errors=False)
+    DirectusSettings.model_rebuild(raise_errors=False)
+    DirectusTranslation.model_rebuild(raise_errors=False)
     DirectusVersion.model_rebuild(raise_errors=False)
 
 

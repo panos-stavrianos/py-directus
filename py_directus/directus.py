@@ -129,11 +129,19 @@ class Directus:
         return response_obj
 
     async def read_settings(self) -> DirectusResponse:
-        response_obj = await DirectusRequest(self, "directus_settings").read(method='get')
+        collection_name = py_directus.DirectusSettings.model_config.get("collection", None)
+
+        assert collection_name is not None
+        
+        response_obj = await DirectusRequest(self, collection_name).read(method='get')
         return response_obj
 
     async def update_settings(self, data) -> DirectusResponse:
-        response_obj = await DirectusRequest(self, "directus_settings").update(None, data)
+        collection_name = py_directus.DirectusSettings.model_config.get("collection", None)
+
+        assert collection_name is not None
+        
+        response_obj = await DirectusRequest(self, collection_name).update(None, data)
         return response_obj
 
     async def read_translations(self) -> dict[str, dict[str, str]]:
@@ -169,14 +177,19 @@ class Directus:
         return url
 
     async def download_file(
-            self, file_id: str,
-            fit: Optional[str] = None,
-            width: Optional[int] = None, height: Optional[int] = None,
-            quality: Optional[int] = None,
-            withoutEnlargement: Optional[bool] = None,
-            img_format: Optional[str] = None,
-            **kwargs
+        self, file_id: str,
+        fit: Optional[str] = None,
+        width: Optional[int] = None, height: Optional[int] = None,
+        quality: Optional[int] = None,
+        withoutEnlargement: Optional[bool] = None,
+        img_format: Optional[str] = None,
+        **kwargs
     ) -> Response:
+        """
+        Download a file from Directus.
+
+        :param file_id: UUID of the file record in Directus.
+        """
         url = f"{self.url}/assets/{file_id}"
 
         request_params = {
@@ -187,6 +200,7 @@ class Directus:
         img_transform_parameters = ImageFileTransform(
             fit=fit,
             width=width,
+            height=height,
             quality=quality,
             withoutEnlargement=withoutEnlargement,
             img_format=img_format,
@@ -210,11 +224,15 @@ class Directus:
 
     async def upload_file(self, to_upload: Union[str, UploadFile], folder: str = None) -> DirectusResponse:
         url = f"{self.url}/files"
+
         folder_id = None
         if folder:
-            folder_id = \
-                (await self.collection('directus_folders').fields("id").filter(name="documents").read()).item[
-                    "id"]
+            folder_obj = (
+                await self.collection(py_directus.DirectusFolder).fields("id").filter(name=folder).read()
+            ).item
+
+            folder_id = folder_obj.id
+
             assert folder_id, f"Folder '{folder}' not found"
 
         if isinstance(to_upload, str):
@@ -240,7 +258,7 @@ class Directus:
             }
 
         else:
-            raise TypeError("The `to_upload` argument must be either a string or a fastapi.UploadFile instance.")
+            raise TypeError("The `to_upload` argument must be either a string or a `fastapi.UploadFile` instance.")
 
         try:
             # File
