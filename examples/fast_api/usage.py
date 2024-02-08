@@ -3,7 +3,7 @@ import asyncio
 from dotenv import dotenv_values
 
 from py_directus import Directus
-from py_directus.fast_api.utils import role_to_id, directus_admin
+from py_directus.fast_api.utils import role_to_id
 from py_directus.fast_api.auth import directus_auth, assert_role
 
 

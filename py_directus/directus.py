@@ -12,7 +12,6 @@ from httpx import AsyncClient, Auth, Response
 from pydantic import BaseModel
 
 import py_directus
-from py_directus import BaseDirectusUser
 from py_directus.cache import SimpleMemoryCache
 from py_directus.directus_request import DirectusRequest
 from py_directus.directus_response import DirectusResponse
@@ -54,7 +53,7 @@ class Directus:
 
         # Credentials
         self._token: Optional[str] = None
-        self._user: Optional[BaseDirectusUser] = None
+        self._user: Optional['py_directus.DirectusUser'] = None
 
         self.email = email
         self.password = password
@@ -86,8 +85,10 @@ class Directus:
             if self.email and self.password and not self._token:
                 await self.login()
             if not self.cache:
-                self.cache = SimpleMemoryCache(self._token)
+                await self.start_cache()
             return self
+        
+        print("IM IN ASYNC")
 
         return closure().__await__()
 
@@ -326,6 +327,11 @@ class Directus:
             'password': self.password
         }
         await self.auth_request(endpoint, payload)
+
+    async def start_cache(self):
+        assert self._token is not None
+
+        self.cache = SimpleMemoryCache(self._token)
 
     async def refresh(self):
         endpoint = "auth/refresh"

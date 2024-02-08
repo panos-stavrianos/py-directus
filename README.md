@@ -68,6 +68,8 @@ Another way is to use the `with` statement to automatically logout when the sess
 async with Directus(url, email, password) as directus:
     # Manually login
     await directus.login()
+    # Manually start cache
+    await directus.start_cache()
     # do stuff
 
 # OR

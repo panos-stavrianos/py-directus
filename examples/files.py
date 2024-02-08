@@ -2,7 +2,7 @@ import asyncio
 
 from dotenv import dotenv_values
 
-from py_directus import Directus
+from py_directus import DirectusFile, Directus
 
 
 config = dotenv_values(".env")
@@ -16,7 +16,7 @@ async def upload_file(directus_client, file_path):
 
 async def get_files_list(directus_client):
     # Get files list
-    response = await directus_client.collection('directus_files').filter(type='image/jpeg').read()
+    response = await directus_client.collection(DirectusFile).filter(type='image/jpeg').read()
     print(response.items)
 
 

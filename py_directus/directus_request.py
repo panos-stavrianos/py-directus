@@ -209,11 +209,12 @@ class DirectusRequest:
                 query_key_str = self._get_query_string_key()
 
                 # Try to find query in cache
-                cached_response = await self.directus.cache.get(query_key_str)
+                if self.directus.cache:
+                    cached_response = await self.directus.cache.get(query_key_str)
 
-                if cached_response:
-                    # Renew the cache value
-                    await self.directus.cache.add(query_key_str, d_response.to_json())
+                    if cached_response:
+                        # Renew the cache value
+                        await self.directus.cache.add(query_key_str, d_response.to_json())
 
         return d_response
 

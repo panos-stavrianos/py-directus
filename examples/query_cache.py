@@ -2,8 +2,7 @@ import asyncio
 
 from dotenv import dotenv_values
 
-from py_directus import Directus
-from py_directus.models import User
+from py_directus import DirectusUser, Directus
 
 
 config = dotenv_values(".env")
@@ -17,7 +16,7 @@ async def get_str(directus_client: Directus):
 
 
 async def get_model(directus_client: Directus):
-    jn_doe_res = await directus_client.collection(User).filter(first_name="John", last_name="Doe").read(cache=True)
+    jn_doe_res = await directus_client.collection(DirectusUser).filter(first_name="John", last_name="Doe").read(cache=True)
 
     print(f"When a pydantic model is used: {jn_doe_res.items}")
 

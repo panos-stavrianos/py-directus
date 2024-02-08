@@ -44,6 +44,37 @@ directus_public: Optional[Directus] = None
 translations = dict[str, dict[str, str]]()
 
 
+def rebuild_models():
+    global DirectusActivity
+    global DirectusRevision
+    global DirectusRole
+    global DirectusRoles
+    global DirectusUser
+    global DirectusFile
+    global DirectusFolder
+    global DirectusPermission
+    global DirectusRelationSchema
+    global DirectusRelationMeta
+    global DirectusRelation
+    global DirectusSettings
+    global DirectusTranslation
+    global DirectusVersion
+
+    DirectusActivity.model_rebuild(raise_errors=False)
+    DirectusRevision.model_rebuild(raise_errors=False)
+    DirectusRole.model_rebuild(raise_errors=False)
+    DirectusUser.model_rebuild(raise_errors=False)
+    DirectusFile.model_rebuild(raise_errors=False)
+    DirectusFolder.model_rebuild(raise_errors=False)
+    DirectusPermission.model_rebuild(raise_errors=False)
+    DirectusRelationSchema.model_rebuild(raise_errors=False)
+    DirectusRelationMeta.model_rebuild(raise_errors=False)
+    DirectusRelation.model_rebuild(raise_errors=False)
+    DirectusSettings.model_rebuild(raise_errors=False)
+    DirectusTranslation.model_rebuild(raise_errors=False)
+    DirectusVersion.model_rebuild(raise_errors=False)
+
+
 def setup_models(directus_models: Type[BaseDirectusModels] = BaseDirectusModels):
     global DirectusActivity
     global DirectusRevision
@@ -103,19 +134,7 @@ def setup_models(directus_models: Type[BaseDirectusModels] = BaseDirectusModels)
         directus_models,
         'DirectusVersion') else BaseDirectusVersion
 
-    DirectusActivity.model_rebuild(raise_errors=False)
-    DirectusRevision.model_rebuild(raise_errors=False)
-    DirectusRole.model_rebuild(raise_errors=False)
-    DirectusUser.model_rebuild(raise_errors=False)
-    DirectusFile.model_rebuild(raise_errors=False)
-    DirectusFolder.model_rebuild(raise_errors=False)
-    DirectusPermission.model_rebuild(raise_errors=False)
-    DirectusRelationSchema.model_rebuild(raise_errors=False)
-    DirectusRelationMeta.model_rebuild(raise_errors=False)
-    DirectusRelation.model_rebuild(raise_errors=False)
-    DirectusSettings.model_rebuild(raise_errors=False)
-    DirectusTranslation.model_rebuild(raise_errors=False)
-    DirectusVersion.model_rebuild(raise_errors=False)
+    rebuild_models()
 
 
 async def async_init(directus_base_url: str, directus_admin_token: str = None,
@@ -137,3 +156,6 @@ async def async_init(directus_base_url: str, directus_admin_token: str = None,
 
     # if load_translations:
     #     translations = await directus_public.get_translations()# TODO
+
+
+rebuild_models()
