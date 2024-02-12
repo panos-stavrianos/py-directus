@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Union, Tuple
 
 try:
@@ -11,8 +11,12 @@ from typing_extensions import Annotated
 from pydantic.functional_validators import AfterValidator
 
 
+local_tzinfo = datetime.now(timezone.utc).astimezone().tzinfo
+
+
 class ModelDateTime(datetime):
     """
+    Datetime overwrite with additional functionality.
     """
 
     DATE_FORMAT: str = "%d/%m/%Y"
@@ -26,18 +30,20 @@ class ModelDateTime(datetime):
     ]
 
     def str_only_date(self):
-        return self.strftime(self.DATE_FORMAT)
+        return self.astimezone(local_tzinfo).strftime(self.DATE_FORMAT)
 
     def str_only_time(self, with_seconds: bool=False):
         if with_seconds:
-            return self.strftime(self.TIME_FORMAT[0])
-        return self.strftime(self.TIME_FORMAT[1])
+            return self.astimezone(local_tzinfo).strftime(self.TIME_FORMAT[0])
+        return self.astimezone(local_tzinfo).strftime(self.TIME_FORMAT[1])
 
     def str_date_time(self, with_seconds: bool=False):
         if with_seconds:
-            return self.strftime(self.DATETIME_FORMAT[0])
-        return self.strftime(self.DATETIME_FORMAT[1])
+            return self.astimezone(local_tzinfo).strftime(self.DATETIME_FORMAT[0])
+        return self.astimezone(local_tzinfo).strftime(self.DATETIME_FORMAT[1])
 
     if human_readable:
         def str_human_readable(self):
-            return human_readable.date_time(ModelDateTime.now() - self)
+            return human_readable.date_time(
+                ModelDateTime.now().astimezone(local_tzinfo) - self.astimezone(local_tzinfo)
+            )
