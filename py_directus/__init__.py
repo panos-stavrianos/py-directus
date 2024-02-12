@@ -14,20 +14,20 @@ try:
 except ImportError:
     pass
 
-DirectusActivity: Type[BaseDirectusActivity] = BaseDirectusActivity
-DirectusRevision: Type[BaseDirectusRevision] = BaseDirectusRevision
-DirectusRole: Type[BaseDirectusRole] = BaseDirectusRole
-DirectusRoles: Type[BaseDirectusRoles] = BaseDirectusRoles
-DirectusUser: Type[BaseDirectusUser] = BaseDirectusUser
-DirectusFile: Type[BaseDirectusFile] = BaseDirectusFile
-DirectusFolder: Type[BaseDirectusFolder] = BaseDirectusFolder
-DirectusPermission: Type[BaseDirectusPermission] = BaseDirectusPermission
-DirectusRelationSchema: Type[BaseDirectusRelationSchema] = BaseDirectusRelationSchema
-DirectusRelationMeta: Type[BaseDirectusRelationMeta] = BaseDirectusRelationMeta
-DirectusRelation: Type[BaseDirectusRelation] = BaseDirectusRelation
-DirectusSettings: Type[BaseDirectusSettings] = BaseDirectusSettings
-DirectusTranslation: Type[BaseDirectusTranslation] = BaseDirectusTranslation
-DirectusVersion: Type[BaseDirectusVersion] = BaseDirectusVersion
+DirectusActivity: Type['BaseDirectusActivity'] = BaseDirectusActivity
+DirectusRevision: Type['BaseDirectusRevision'] = BaseDirectusRevision
+DirectusRole: Type['BaseDirectusRole'] = BaseDirectusRole
+DirectusRoles: Type['BaseDirectusRoles'] = BaseDirectusRoles
+DirectusUser: Type['BaseDirectusUser'] = BaseDirectusUser
+DirectusFile: Type['BaseDirectusFile'] = BaseDirectusFile
+DirectusFolder: Type['BaseDirectusFolder'] = BaseDirectusFolder
+DirectusPermission: Type['BaseDirectusPermission'] = BaseDirectusPermission
+DirectusRelationSchema: Type['BaseDirectusRelationSchema'] = BaseDirectusRelationSchema
+DirectusRelationMeta: Type['BaseDirectusRelationMeta'] = BaseDirectusRelationMeta
+DirectusRelation: Type['BaseDirectusRelation'] = BaseDirectusRelation
+DirectusSettings: Type['BaseDirectusSettings'] = BaseDirectusSettings
+DirectusTranslation: Type['BaseDirectusTranslation'] = BaseDirectusTranslation
+DirectusVersion: Type['BaseDirectusVersion'] = BaseDirectusVersion
 
 cached_directus_instances = dict[str, Directus]()
 
@@ -41,6 +41,7 @@ directus_admin: Optional[Directus] = None
 # Public directus
 directus_public: Optional[Directus] = None
 
+# Directus Translations
 translations = dict[str, dict[str, str]]()
 
 
@@ -75,7 +76,7 @@ def rebuild_models():
     DirectusVersion.model_rebuild(raise_errors=False)
 
 
-def setup_models(directus_models: Type[BaseDirectusModels] = BaseDirectusModels):
+def setup_models(directus_models: Type['BaseDirectusModels'] = BaseDirectusModels):
     global DirectusActivity
     global DirectusRevision
     global DirectusRole
@@ -137,15 +138,16 @@ def setup_models(directus_models: Type[BaseDirectusModels] = BaseDirectusModels)
     rebuild_models()
 
 
-async def async_init(directus_base_url: str, directus_admin_token: str = None,
-                     load_translations: bool = False,
-                     directus_models: Type[BaseDirectusModels] = BaseDirectusModels):
+async def async_init(directus_base_url: str, directus_admin_token: str = None, 
+                     directus_models: Type[BaseDirectusModels] = BaseDirectusModels, 
+                     load_translations: bool = False):
     global directus_admin
     global directus_public
     global directus_url
 
     global translations
 
+    # Setup defaults
     setup_models(directus_models)
 
     directus_url = directus_base_url
@@ -154,8 +156,9 @@ async def async_init(directus_base_url: str, directus_admin_token: str = None,
     if directus_admin_token:
         directus_admin = await Directus(directus_url, token=directus_admin_token, connection=directus_session)
 
-    # if load_translations:
-    #     translations = await directus_public.get_translations()# TODO
+    # Load Directus translations at startup
+    if load_translations:
+        translations = await directus_public.get_translations(clean=True)
 
 
 rebuild_models()

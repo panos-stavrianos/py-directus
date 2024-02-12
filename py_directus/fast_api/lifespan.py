@@ -15,7 +15,7 @@ async def _lifespan(app: Union['FastAPI', None] = None, directus_base_url: str =
     """
 
     # Initialize global clients
-    await glob_vars.async_init(directus_base_url, directus_admin_token)
+    await glob_vars.async_init(directus_base_url, directus_admin_token=directus_admin_token)
 
     try:
         yield

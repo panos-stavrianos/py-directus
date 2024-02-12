@@ -5,7 +5,7 @@ import os
 import re
 from io import BytesIO
 # import aiofiles
-from typing import Union, Optional, Type
+from typing import Union, Optional, Type, List, Tuple
 
 import magic
 from httpx import AsyncClient, Auth, Response
@@ -22,7 +22,6 @@ from py_directus.utils import parse_translations
 try:
     # from fastapi import UploadFile
     from starlette.datastructures import UploadFile
-
 except ImportError:
     pass
 
@@ -43,8 +42,9 @@ class Directus:
     """
 
     def __init__(
-            self, url: str, email: str = None, password: str = None, token: str = None, refresh_token: str = None,
-            connection: AsyncClient = None
+        self, url: str, email: str = None, password: str = None, 
+        token: str = None, refresh_token: str = None,
+        connection: AsyncClient = None
     ):
         self.expires = None
         self.expiration_time = None
@@ -69,15 +69,7 @@ class Directus:
         self.cache: Union[SimpleMemoryCache, None] = None
 
         # Any async tasks for later gathering
-        self.tasks: list[DirectusResponse] = []
-
-    async def gather(self):
-        """
-        Gather all async tasks.
-        """
-        print("Gathering tasks", self.tasks)
-        await asyncio.gather(*[task.gather_response() for task in self.tasks])
-        self.tasks.clear()
+        self.tasks: List[DirectusResponse] = []
 
     def __await__(self):
         async def closure():
@@ -91,6 +83,14 @@ class Directus:
         print("IM IN ASYNC")
 
         return closure().__await__()
+
+    async def gather(self):
+        """
+        Gather all async tasks.
+        """
+        print("Gathering tasks", self.tasks)
+        await asyncio.gather(*[task.gather_response() for task in self.tasks])
+        self.tasks.clear()
 
     def collection(self, collection: Union[Type[BaseModel], str]) -> DirectusRequest:
         """
@@ -127,39 +127,6 @@ class Directus:
         """
 
         response_obj = await self.collection(py_directus.DirectusRole).read()
-        return response_obj
-
-    async def read_settings(self) -> DirectusResponse:
-        collection_name = py_directus.DirectusSettings.model_config.get("collection", None)
-
-        assert collection_name is not None
-        
-        response_obj = await DirectusRequest(self, collection_name).read(method='get')
-        return response_obj
-
-    async def update_settings(self, data) -> DirectusResponse:
-        collection_name = py_directus.DirectusSettings.model_config.get("collection", None)
-
-        assert collection_name is not None
-        
-        response_obj = await DirectusRequest(self, collection_name).update(None, data)
-        return response_obj
-
-    async def read_translations(self) -> dict[str, dict[str, str]]:
-        """
-        NOTE: TO BE REDESIGNED
-        """
-        items = await self.collection("translations").fields(
-            'key', 'translations.languages_code', 'translations.translation'
-        ).read().items
-
-        return parse_translations(items)
-
-    async def create_translations(self, keys: list[str]):
-        """
-        NOTE: TO BE REDESIGNED
-        """
-        response_obj = await self.collection("translations").create([{"key": key} for key in keys])
         return response_obj
 
     @classmethod
@@ -274,16 +241,47 @@ class Directus:
 
         return DirectusResponse(response)
 
-    async def clear_cache(self, clear_all: bool = False):
+    async def get_translations(self, clean: bool = False) -> dict[str, dict[str, str]]:
         """
-        Clear cache:
+        Retrieve dictionary with all translation records.
 
-        :param clear_all: If set to `True`, absolutely ALL records will be deleted.
+        :param clean: Returns the records grouped by `key` value when set as `True`.
         """
-        return await self.cache.clear(clear_all)
+        items = (await self.collection(py_directus.DirectusTranslation).read()).items_as_dict()
 
-    async def __aenter__(self):
-        return self
+        return parse_translations(items) if clean else items
+
+    async def create_translations(self, *keys: Union[str, Tuple[str, str]]):
+        """
+        Create translation records for given keys.
+        """
+        # Payload
+        payload = [(
+            lambda x: (
+                {"key": x, "language": "en-GB", "value": ""} 
+                if isinstance(x, str) else 
+                {"key": x[0], "language": x[1], "value": ""}
+            )
+        )(key) for key in keys]
+
+        response_obj = await self.collection(py_directus.DirectusTranslation).create(payload)
+        return response_obj
+
+    async def read_settings(self) -> DirectusResponse:
+        collection_name = py_directus.DirectusSettings.model_config.get("collection", None)
+
+        assert collection_name is not None
+        
+        response_obj = await DirectusRequest(self, collection_name).read(method='get')
+        return response_obj
+
+    async def update_settings(self, data) -> DirectusResponse:
+        collection_name = py_directus.DirectusSettings.model_config.get("collection", None)
+
+        assert collection_name is not None
+        
+        response_obj = await DirectusRequest(self, collection_name).update(None, data)
+        return response_obj
 
     @property
     def token(self):
@@ -328,11 +326,6 @@ class Directus:
         }
         await self.auth_request(endpoint, payload)
 
-    async def start_cache(self):
-        assert self._token is not None
-
-        self.cache = SimpleMemoryCache(self._token)
-
     async def refresh(self):
         endpoint = "auth/refresh"
         payload = {
@@ -341,6 +334,19 @@ class Directus:
         }
         await self.auth_request(endpoint, payload)
         await self.clear_cache(True)
+
+    async def start_cache(self):
+        assert self._token is not None
+
+        self.cache = SimpleMemoryCache(self._token)
+
+    async def clear_cache(self, clear_all: bool = False):
+        """
+        Clear cache:
+
+        :param clear_all: If set to `True`, absolutely ALL records will be deleted.
+        """
+        return await self.cache.clear(clear_all)
 
     async def logout(self) -> bool:
         url = f"{self.url}/auth/logout"
@@ -360,6 +366,9 @@ class Directus:
 
     async def close_connection(self):
         await self.connection.aclose()
+
+    async def __aenter__(self):
+        return self
 
     async def __aexit__(self, *args):
         print("Closing connection")

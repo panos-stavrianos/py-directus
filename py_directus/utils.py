@@ -1,4 +1,5 @@
 import secrets
+import itertools
 from typing import Union, List
 
 RANDOM_STRING_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -23,12 +24,15 @@ def get_random_string(length=None, allowed_chars=RANDOM_STRING_CHARS):
 
 
 def parse_translations(all_translations: List[dict]) -> Union[dict[str, dict[str, str]], None]:
-    if all_translations is None or not all_translations:
+    if not all_translations:
         return None
 
+    grouper = itertools.groupby(all_translations, lambda x: x['key'])
+
     return {
-        translations['key']: {
-            translation['languages_code']: translation['translation']
-            for translation in translations['translations']
-        } for translations in all_translations
+        f"{key}": {
+            translation['language']: translation['value']
+            for translation in group_recs
+            
+        } for key, group_recs in grouper
     }

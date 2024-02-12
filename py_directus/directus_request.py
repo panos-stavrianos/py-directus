@@ -152,8 +152,8 @@ class DirectusRequest:
         return self
 
     async def read(
-            self, id: Optional[Union[int, str]] = None, method: str = "search", cache: bool = False,
-            as_task: bool = False
+        self, id: Optional[Union[int, str]] = None, method: str = "search", 
+        cache: bool = False, as_task: bool = False
     ) -> DirectusResponse:
         """
         Request data.
@@ -165,9 +165,12 @@ class DirectusRequest:
 
         :return: The DirectusResponse object
 
-        IMPORTANT: cache and as_task cannot be used together, if both are set to True, the cache will take precedence and the request will be awaited.
+        IMPORTANT: cache and as_task cannot be used together, if both are set to True, 
+                   the cache will take precedence and the request will be awaited.
         """
-        cache = False  # TODO: Temporary disable until cache is fixed
+
+        method = "get" if id is not None else method
+
         if cache:
             d_response = await self._read_cache(id=id, method=method)
         else:
@@ -176,14 +179,13 @@ class DirectusRequest:
         return d_response
 
     async def _read(
-            self, id: Optional[Union[int, str]] = None, method: str = "search", renew_cache: bool = False,
-            as_task: bool = False
+        self, id: Optional[Union[int, str]] = None, method: str = "search", 
+        renew_cache: bool = False, as_task: bool = False
     ) -> DirectusResponse:
         """
         Send query to server.
         """
 
-        method = "get" if id is not None else method
         if method == "search":
             response = self.directus.connection.request(
                 "search", self.uri,
@@ -206,7 +208,7 @@ class DirectusRequest:
         # Check for existing cache and renew it
         if not renew_cache:
             async with self._lock_2:
-                query_key_str = self._get_query_string_key()
+                query_key_str = self._get_query_string_key(id=id, method=method)
 
                 # Try to find query in cache
                 if self.directus.cache:
@@ -219,13 +221,13 @@ class DirectusRequest:
         return d_response
 
     async def _read_cache(
-            self, id: Optional[Union[int, str]] = None, method: str = "search"
+        self, id: Optional[Union[int, str]] = None, method: str = "search"
     ) -> DirectusResponse:
         """
         Get response from cache.
         """
         async with self._lock:
-            query_key_str = self._get_query_string_key()
+            query_key_str = self._get_query_string_key(id=id, method=method)
 
             # Try to find query in cache
             cached_response = await self.directus.cache.get(query_key_str)
@@ -242,21 +244,21 @@ class DirectusRequest:
 
             return d_response
 
-    async def clear_cache(self):
-        query_key_str = self._get_query_string_key()
+    async def clear_cache(self, id: Optional[Union[int, str]] = None, method: str = "search"):
+        query_key_str = self._get_query_string_key(id=id, method=method)
 
         # Try to find query in cache
         d_res = await self.directus.cache.delete(query_key_str)
         return d_res
 
-    def _get_query_string_key(self):
+    def _get_query_string_key(self, id: Optional[Union[int, str]] = None, method: str = "search"):
         """
         Generate request key for cache.
         """
 
         query_str = jsonlib.dumps(self.params)
 
-        return f"{self.collection}_{query_str}"
+        return f"{self.collection}_{id}_{method}_{query_str}"
 
     async def subscribe(self, uri: str, event_type: Optional[str] = None, uid: Optional[str] = None) -> Tuple[
         'Data', 'WebSocketClientProtocol']:

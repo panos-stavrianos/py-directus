@@ -124,6 +124,10 @@ class DirectusResponse:
         else:
             return []
 
+    def __str__(self):
+        def_str = super().__str__()
+        return f"{def_str} ({self.status_code})"
+
     def to_json(self):
         data = {
             "response_status": self.response_status,
