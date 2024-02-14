@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import inspect
 import json as jsonlib
-from typing import Any, Union, TypeVar, List, Coroutine
+from typing import Any, Union, Optional, TypeVar, List, Coroutine
 
 try:
     from rich import print  # noqa
@@ -15,15 +15,23 @@ from httpx import Response
 from pydantic import BaseModel, TypeAdapter
 
 
+RESOLUTION_EXCEPTION_MESSAGE = (
+    "The response is not resolved at this point, "
+    "please call the `gather` method of your `Directus` client instance"
+)
+
+
 class DirectusResponse:
     T = TypeVar("T", bound=BaseModel)
 
     def __init__(self, response: Union[Response, Coroutine, None] = None, query: dict = None, collection: Any = None):
-        self.response: Union[Response, Coroutine, None] = response
-        self.response_status: Union[int, None] = None
+        self.response: Optional[Union[Response, Coroutine]] = response
+        
+        self.response_status: Optional[int] = None
         self.query: dict = query
         self.collection: Any = collection
-        self.json: Union[dict, None] = None
+        self.json: Optional[dict] = None
+        self.is_resolved: bool = False
 
         self.parse_response()
 
@@ -39,7 +47,13 @@ class DirectusResponse:
             except jsonlib.decoder.JSONDecodeError:
                 self.json = {}
 
+            self.is_resolved = True
+
     async def gather_response(self):
+        """
+        Resolves the response coroutine.
+        """
+
         if inspect.iscoroutine(self.response):
             self.response = await self.response
             self.parse_response()
@@ -63,6 +77,8 @@ class DirectusResponse:
 
     @property
     def item(self) -> Union[dict[Any, Any], Any, None]:  # noqa
+        assert self.is_resolved, RESOLUTION_EXCEPTION_MESSAGE
+
         if "data" not in self.json or self.json['data'] in [None, [], {}]:
             return None
         if self.collection:
@@ -70,16 +86,22 @@ class DirectusResponse:
         return self._parse_item_as_dict()
 
     def item_as(self, collection: T) -> Union[T, None]:  # noqa
+        assert self.is_resolved, RESOLUTION_EXCEPTION_MESSAGE
+
         item_data = self._parse_item_as_dict()
         return None if item_data is None else collection(**item_data)
 
     def item_as_dict(self) -> Union[dict, None]:  # noqa
+        assert self.is_resolved, RESOLUTION_EXCEPTION_MESSAGE
+
         if "data" not in self.json or self.json['data'] in [None, [], {}]:
             return None
         return self._parse_item_as_dict()
 
     @property
     def items(self) -> Union[List[dict[Any, Any]], Any, None]:  # noqa
+        assert self.is_resolved, RESOLUTION_EXCEPTION_MESSAGE
+
         if "data" not in self.json or self.json['data'] in [None, [], {}]:
             return None
         if self.collection:
@@ -87,21 +109,29 @@ class DirectusResponse:
         return self._parse_items_as_dict()
 
     def items_as(self, collection: T) -> Union[List[T], None]:  # noqa
+        assert self.is_resolved, RESOLUTION_EXCEPTION_MESSAGE
+
         items_data = self._parse_items_as_dict()
         return None if items_data is None else TypeAdapter(List[collection]).validate_python(items_data)
 
     def items_as_dict(self) -> Union[List[dict], None]:  # noqa
+        assert self.is_resolved, RESOLUTION_EXCEPTION_MESSAGE
+
         if "data" not in self.json or self.json['data'] in [None, [], {}]:
             return None
         return self._parse_items_as_dict()
 
     @property
     def total_count(self) -> int:
+        assert self.is_resolved, RESOLUTION_EXCEPTION_MESSAGE
+
         if "meta" in self.json and "total_count" in self.json['meta']:
             return self.json['meta']['total_count']
 
     @property
     def filtered_count(self) -> int:
+        assert self.is_resolved, RESOLUTION_EXCEPTION_MESSAGE
+
         if "meta" in self.json and "filter_count" in self.json['meta']:
             return self.json['meta']['filter_count']
 
@@ -151,6 +181,7 @@ class DirectusResponse:
         new_obj.query = data['query']
         new_obj.collection = collection
         new_obj.json = data['json']
+        new_obj.is_resolved = True
 
         return new_obj
 
@@ -227,12 +258,11 @@ class DirectusResponse:
 
 
 class DirectusException(Exception):
-    def __init__(self, response: DirectusResponse):
-        self.response = response
+    def __init__(self, response: 'DirectusResponse'):
         self.status_code = response.status_code
         self.message = None
         self.code = None
-        self.response: DirectusResponse = response
+        self.response: 'DirectusResponse' = response
 
         if len(response.errors) > 0 and (
                 "message" in response.errors[0]

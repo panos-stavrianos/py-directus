@@ -200,6 +200,7 @@ class DirectusRequest:
 
         d_response = DirectusResponse(response, query=self.params, collection=self.collection_class)
 
+        # Response retrieval
         if as_task:
             self.directus.tasks.append(d_response)
         else:
@@ -260,49 +261,18 @@ class DirectusRequest:
 
         return f"{self.collection}_{id}_{method}_{query_str}"
 
-    async def subscribe(self, uri: str, event_type: Optional[str] = None, uid: Optional[str] = None) -> Tuple[
-        'Data', 'WebSocketClientProtocol']:
-        """
-        Returns authentication confirmation message and the client websocket.
-        """
-        ws = await websockets.connect(uri)
-
-        # Authentication
-        auth_data = jsonlib.dumps({
-            "type": "auth",
-            "access_token": self.directus._token
-        })
-
-        await ws.send(auth_data)
-        auth_res = await ws.recv()
-
-        # Subscription
-        subsc_data = {
-            "type": "subscribe",
-            "collection": self.collection,
-            "query": self.params
-        }
-
-        if event_type:
-            subsc_data['event'] = event_type
-
-        if uid:
-            subsc_data['uid'] = uid
-
-        await ws.send(jsonlib.dumps(subsc_data))
-        subsc_res = await ws.recv()
-
-        return auth_res, ws
-
     async def create(self, items: Union[dict, List[dict]], as_task: bool = False) -> DirectusResponse:
         assert isinstance(items, (dict, list))
 
         response = self.directus.connection.post(self.uri, json=items, auth=self.directus.auth)
         d_response = DirectusResponse(response, collection=self.collection_class)
+
+        # Response retrieval
         if as_task:
             self.directus.tasks.append(d_response)
         else:
             await d_response.gather_response()
+
         return d_response
 
     @overload
@@ -334,10 +304,13 @@ class DirectusRequest:
                 f"ids: list[int | str], items: list\n"
                 f"You provided: ids={type(ids)}, items={type(items)}"
             )
+
+        # Response retrieval
         if as_task:
             self.directus.tasks.append(d_response)
         else:
             await d_response.gather_response()
+
         return d_response
 
     async def delete(self, ids: Union[int, str, List[Union[int, str]]], as_task: bool = False) -> DirectusResponse:
@@ -352,8 +325,46 @@ class DirectusRequest:
                 f"The ids argument must be one of the following types: int | str | list[int | str]\n"
                 f"You provided: {ids}"
             )
+
+        # Response retrieval
         if as_task:
             self.directus.tasks.append(d_response)
         else:
             await d_response.gather_response()
+
         return d_response
+
+    async def subscribe(
+        self, uri: str, event_type: Optional[str] = None, uid: Optional[str] = None
+    ) -> Tuple['Data', 'WebSocketClientProtocol']:
+        """
+        Returns authentication confirmation message and the client websocket.
+        """
+        ws = await websockets.connect(uri)
+
+        # Authentication
+        auth_data = jsonlib.dumps({
+            "type": "auth",
+            "access_token": self.directus._token
+        })
+
+        await ws.send(auth_data)
+        auth_res = await ws.recv()
+
+        # Subscription
+        subsc_data = {
+            "type": "subscribe",
+            "collection": self.collection,
+            "query": self.params
+        }
+
+        if event_type:
+            subsc_data['event'] = event_type
+
+        if uid:
+            subsc_data['uid'] = uid
+
+        await ws.send(jsonlib.dumps(subsc_data))
+        subsc_res = await ws.recv()
+
+        return auth_res, ws
