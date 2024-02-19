@@ -1,46 +1,4 @@
-# py-directus
-
-## Disclaimer: Under development
-
-Documentation [here](https://panos-stavrianos.github.io/py-directus/)
-
-py-directus is a Python wrapper for asynchronous interaction with the Directus headless CMS API. It provides a convenient and
-easy-to-use interface for performing CRUD operations, querying data, and managing resources in Directus.
-
-## Features
-
-- Asynchronous
-- Login and authentication handling
-- Reading and writing data from Directus collections
-- Filtering, sorting, and searching data
-- Aggregating data using aggregation operators
-- Creating, updating, and deleting items in Directus collections
-- Handling multiple users in the same session
-
-Dependencies:
-- [Pydantic](https://pydantic-docs.helpmanual.io/): This library leverages Pydantic for data validation and parsing. Pydantic is a powerful tool in Python for ensuring data integrity and handling data validation with ease.
-
-- [HTTPX](https://www.python-httpx.org/): The library utilizes HTTPX, a fully featured HTTP client for Python 3, which provides sync and async APIs, and support for both HTTP/1.1 and HTTP/2.
-
-> Directus API:
-> This library interacts with the [Directus API](https://docs.directus.io/reference/introduction.html).
-> 
-> To make the most of this library, it is highly recommended to familiarize yourself with the Directus API documentation. Understanding the API's capabilities and endpoints will help you effectively utilize this library for seamless integration with Directus.
-
-## Installation
-
-You can install the library directly from [pypi](https://pypi.org/project/py-directus/) using pip:
-
-```shell
-$ pip install py-directus
-```
-
-> FastAPI support requires additional dependencies installation. 
-> You can install them along others like this:
-
-```shell
-$ pip install py-directus[FastAPI]
-```
+# Cheat Sheet
 
 ## Authentication and Session Handling
 
@@ -403,27 +361,3 @@ await directus.collection("directus_users").delete([1, 2])
 ```
 
 > Supporting `Pydantic` models for `create`/`update`/`delete` item operations is shortly coming.
-
-## Examples
-
-> Examples are not included with the `pypi` package, so you will have to download them separately and execute in a virtual environment.
-
-Run individual examples as such:
-
-```shell
-python -m examples.<example_file_name>
-```
-
-## Tests
-
-Run tests as such:
-
-```shell
-# All unit tests
-
-python -m unittest discover -s tests/unit
-
-# All integration tests
-
-python -m unittest discover -s tests/integration
-```
