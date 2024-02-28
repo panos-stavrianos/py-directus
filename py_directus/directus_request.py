@@ -234,10 +234,8 @@ class DirectusRequest:
             cached_response = await self.directus.cache.get(query_key_str)
 
             if cached_response:
-                print("FROM CACHE")
                 d_response = DirectusResponse.from_json(cached_response, collection=self.collection_class)
             else:
-                print("FROM NEW")
                 d_response = await self._read(id=id, method=method, renew_cache=True)
 
                 # Add results to cache

@@ -79,8 +79,6 @@ class Directus:
             if not self.cache:
                 await self.start_cache()
             return self
-        
-        print("IM IN ASYNC")
 
         return closure().__await__()
 
@@ -336,9 +334,10 @@ class Directus:
         await self.clear_cache(True)
 
     async def start_cache(self):
-        assert self._token is not None
-
-        self.cache = SimpleMemoryCache(self._token)
+        if not self._token:
+            self.cache = SimpleMemoryCache("public")
+        else:
+            self.cache = SimpleMemoryCache(self._token)
 
     async def clear_cache(self, clear_all: bool = False):
         """
