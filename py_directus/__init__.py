@@ -94,25 +94,25 @@ def setup_models(directus_models: Type['BaseDirectusModels'] = BaseDirectusModel
 
     DirectusActivity = _models.directus_model_settings.DirectusActivity = directus_models.DirectusActivity if hasattr(
         directus_models,
-        'DirectusActivity') else BaseDirectusVersion
+        'DirectusActivity') else BaseDirectusActivity
     DirectusRevision = _models.directus_model_settings.DirectusRevision = directus_models.DirectusRevision if hasattr(
         directus_models,
-        'DirectusRevision') else BaseDirectusVersion
+        'DirectusRevision') else BaseDirectusRevision
     DirectusRole = _models.directus_model_settings.DirectusRole = directus_models.DirectusRole if hasattr(
         directus_models,
-        'DirectusRole') else BaseDirectusVersion
+        'DirectusRole') else BaseDirectusRole
     DirectusRoles = _models.directus_model_settings.DirectusRoles = directus_models.DirectusRoles if hasattr(
         directus_models,
-        'DirectusRoles') else BaseDirectusVersion
+        'DirectusRoles') else BaseDirectusRoles
     DirectusUser = _models.directus_model_settings.DirectusUser = directus_models.DirectusUser if hasattr(
         directus_models,
-        'DirectusUser') else BaseDirectusVersion
+        'DirectusUser') else BaseDirectusUser
     DirectusFile = _models.directus_model_settings.DirectusFile = directus_models.DirectusFile if hasattr(
         directus_models,
-        'DirectusFile') else BaseDirectusVersion
+        'DirectusFile') else BaseDirectusFile
     DirectusFolder = _models.directus_model_settings.DirectusFolder = directus_models.DirectusFolder if hasattr(
         directus_models,
-        'DirectusFolder') else BaseDirectusVersion
+        'DirectusFolder') else BaseDirectusFolder
     DirectusPermission = _models.directus_model_settings.DirectusPermission = directus_models.DirectusPermission if hasattr(
         directus_models,
         'DirectusPermission') else BaseDirectusPermission
