@@ -30,7 +30,7 @@ class DirectusResponse:
         self.response_status: Optional[int] = None
         self.query: dict = query
         self.collection: Any = collection
-        self.json: Optional[dict] = None
+        self.json: Optional[dict] = {}
         self.is_resolved: bool = False
 
         self.parse_response()
@@ -42,6 +42,8 @@ class DirectusResponse:
 
             try:
                 self.json = self.response.json()
+                if self.json is None:
+                    self.json = {}
                 if self.is_error:
                     raise DirectusException(self)
             except jsonlib.decoder.JSONDecodeError:
