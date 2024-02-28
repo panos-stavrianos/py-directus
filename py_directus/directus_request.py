@@ -7,6 +7,7 @@ from typing import (
     Union, Optional, Type, List, Tuple,
     overload
 )
+from uuid import UUID
 
 import json_fix
 import websockets
@@ -152,8 +153,8 @@ class DirectusRequest:
         return self
 
     async def read(
-        self, id: Optional[Union[int, str]] = None, method: str = "search", 
-        cache: bool = False, as_task: bool = False
+            self, id: Optional[Union[UUID, int, str]] = None, method: str = "search",
+            cache: bool = False, as_task: bool = False
     ) -> DirectusResponse:
         """
         Request data.
@@ -179,8 +180,8 @@ class DirectusRequest:
         return d_response
 
     async def _read(
-        self, id: Optional[Union[int, str]] = None, method: str = "search", 
-        renew_cache: bool = False, as_task: bool = False
+            self, id: Optional[Union[UUID, int, str]] = None, method: str = "search",
+            renew_cache: bool = False, as_task: bool = False
     ) -> DirectusResponse:
         """
         Send query to server.
@@ -222,7 +223,7 @@ class DirectusRequest:
         return d_response
 
     async def _read_cache(
-        self, id: Optional[Union[int, str]] = None, method: str = "search"
+            self, id: Optional[Union[UUID, int, str]] = None, method: str = "search"
     ) -> DirectusResponse:
         """
         Get response from cache.
@@ -243,14 +244,14 @@ class DirectusRequest:
 
             return d_response
 
-    async def clear_cache(self, id: Optional[Union[int, str]] = None, method: str = "search"):
+    async def clear_cache(self, id: Optional[Union[UUID, int, str]] = None, method: str = "search"):
         query_key_str = self._get_query_string_key(id=id, method=method)
 
         # Try to find query in cache
         d_res = await self.directus.cache.delete(query_key_str)
         return d_res
 
-    def _get_query_string_key(self, id: Optional[Union[int, str]] = None, method: str = "search"):
+    def _get_query_string_key(self, id: Optional[Union[UUID, int, str]] = None, method: str = "search"):
         """
         Generate request key for cache.
         """
@@ -274,15 +275,16 @@ class DirectusRequest:
         return d_response
 
     @overload
-    async def update(self, ids: Optional[Union[int, str]], items: dict, as_task: bool = False) -> DirectusResponse:
+    async def update(self, ids: Optional[Union[UUID, int, str]], items: dict,
+                     as_task: bool = False) -> DirectusResponse:
         ...
 
     @overload
-    async def update(self, ids: List[Union[int, str]], items: list, as_task: bool = False) -> DirectusResponse:
+    async def update(self, ids: List[Union[UUID, int, str]], items: list, as_task: bool = False) -> DirectusResponse:
         ...
 
     async def update(self, ids, items, as_task: bool = False) -> DirectusResponse:
-        if isinstance(ids, (int, str, None)) and isinstance(items, dict):
+        if isinstance(ids, (UUID, int, str, None)) and isinstance(items, dict):
             if ids is None:
                 response = self.directus.connection.patch(self.uri, json=items, auth=self.directus.auth)
             else:
@@ -311,8 +313,9 @@ class DirectusRequest:
 
         return d_response
 
-    async def delete(self, ids: Union[int, str, List[Union[int, str]]], as_task: bool = False) -> DirectusResponse:
-        if isinstance(ids, (int, str)):
+    async def delete(self, ids: Union[UUID, int, str, List[Union[UUID, int, str]]],
+                     as_task: bool = False) -> DirectusResponse:
+        if isinstance(ids, (UUID, int, str)):
             response = self.directus.connection.delete(f'{self.uri}/{ids}', auth=self.directus.auth)
             d_response = DirectusResponse(response, collection=self.collection_class)
         elif isinstance(ids, list):
@@ -333,7 +336,7 @@ class DirectusRequest:
         return d_response
 
     async def subscribe(
-        self, uri: str, event_type: Optional[str] = None, uid: Optional[str] = None
+            self, uri: str, event_type: Optional[str] = None, uid: Optional[str] = None
     ) -> Tuple['Data', 'WebSocketClientProtocol']:
         """
         Returns authentication confirmation message and the client websocket.
