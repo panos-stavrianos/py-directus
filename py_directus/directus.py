@@ -20,10 +20,9 @@ from py_directus.transformation import ImageFileTransform
 from py_directus.utils import parse_translations
 
 try:
-    # from fastapi import UploadFile
     from starlette.datastructures import UploadFile
 except ImportError:
-    pass
+    UploadFile = None
 
 
 class BearerAuth(Auth):
@@ -42,9 +41,9 @@ class Directus:
     """
 
     def __init__(
-        self, url: str, email: str = None, password: str = None, 
-        token: str = None, refresh_token: str = None,
-        connection: AsyncClient = None
+            self, url: str, email: str = None, password: str = None,
+            token: str = None, refresh_token: str = None,
+            connection: AsyncClient = None
     ):
         self.expires = None
         self.expiration_time = None
@@ -143,13 +142,13 @@ class Directus:
         return url
 
     async def download_file(
-        self, file_id: str,
-        fit: Optional[str] = None,
-        width: Optional[int] = None, height: Optional[int] = None,
-        quality: Optional[int] = None,
-        withoutEnlargement: Optional[bool] = None,
-        img_format: Optional[str] = None,
-        **kwargs
+            self, file_id: str,
+            fit: Optional[str] = None,
+            width: Optional[int] = None, height: Optional[int] = None,
+            quality: Optional[int] = None,
+            withoutEnlargement: Optional[bool] = None,
+            img_format: Optional[str] = None,
+            **kwargs
     ) -> Response:
         """
         Download a file from Directus.
@@ -188,7 +187,7 @@ class Directus:
 
         return response
 
-    async def upload_file(self, to_upload: Union[str, UploadFile], folder: str = None) -> DirectusResponse:
+    async def upload_file(self, to_upload: Union[str, 'UploadFile'], folder: str = None) -> DirectusResponse:
         url = f"{self.url}/files"
 
         folder_id = None
@@ -208,7 +207,6 @@ class Directus:
 
             data = {
                 "title": os.path.splitext(file_name)[0],
-                "folder": folder_id
             }
             f = open(to_upload, 'rb')
             files = {
@@ -217,7 +215,6 @@ class Directus:
         elif isinstance(to_upload, UploadFile):
             data = {
                 "title": os.path.splitext(to_upload.filename)[0],
-                "folder": folder_id
             }
             files = {
                 "file": (to_upload.filename, BytesIO(await to_upload.read()), to_upload.content_type)
@@ -231,7 +228,8 @@ class Directus:
             # NOTE: CANNOT USE ASYNCHRONOUS FILES BECAUSE THEY ARE NOT SUPPORTED BY HTTPX
             # https://github.com/encode/httpx/issues/1620
             # f = await aiofiles.open(to_upload, 'rb')
-
+            if folder_id:
+                data["folder"] = folder_id
             response = await self.connection.post(url, data=data, files=files, auth=self.auth)
         finally:
             if isinstance(to_upload, str):
@@ -255,12 +253,12 @@ class Directus:
         """
         # Payload
         payload = [(
-            lambda x: (
-                {"key": x, "language": "en-GB", "value": ""} 
-                if isinstance(x, str) else 
-                {"key": x[0], "language": x[1], "value": ""}
-            )
-        )(key) for key in keys]
+                       lambda x: (
+                           {"key": x, "language": "en-GB", "value": ""}
+                           if isinstance(x, str) else
+                           {"key": x[0], "language": x[1], "value": ""}
+                       )
+                   )(key) for key in keys]
 
         response_obj = await self.collection(py_directus.DirectusTranslation).create(payload)
         return response_obj
@@ -269,7 +267,7 @@ class Directus:
         collection_name = py_directus.DirectusSettings.model_config.get("collection", None)
 
         assert collection_name is not None
-        
+
         response_obj = await DirectusRequest(self, collection_name).read(method='get')
         return response_obj
 
@@ -277,7 +275,7 @@ class Directus:
         collection_name = py_directus.DirectusSettings.model_config.get("collection", None)
 
         assert collection_name is not None
-        
+
         response_obj = await DirectusRequest(self, collection_name).update(None, data)
         return response_obj
 

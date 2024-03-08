@@ -11,7 +11,7 @@ config = dotenv_values(".env")
 async def upload_file(directus_client, file_path):
     # Uploading local file
     r = await directus_client.upload_file(file_path)
-    print(r.text)
+    print(r)
 
 
 async def get_files_list(directus_client):
