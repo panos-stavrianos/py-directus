@@ -2,6 +2,13 @@
 
 ## Disclaimer: Under development
 
+> This is very early in development and the API is subject to change.
+>
+> If you intend to use this library in a production environment, expect undocumented changes and bugs until the first
+> stable release.
+>
+> If you find any issues or have any suggestions, please open an issue or a pull request.
+
 Documentation [here](https://panos-stavrianos.github.io/py-directus/)
 
 py-directus is a Python wrapper for asynchronous interaction with the Directus headless CMS API. It provides a convenient and
