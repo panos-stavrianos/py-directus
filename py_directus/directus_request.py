@@ -4,7 +4,8 @@ import asyncio
 import json as jsonlib
 from typing import (
     TYPE_CHECKING,
-    Union, Optional, Type, List, Tuple,
+    Union, Optional, 
+    Type, Any, List, Dict, Tuple,
     overload
 )
 from uuid import UUID
@@ -37,7 +38,7 @@ class DirectusRequest:
 
         self.directus: 'Directus' = directus
         self.collection: str = collection
-        self.params: dict = {}
+        self.params: Dict[Any, Any] = {}
         self.collection_class: Optional[Union[Type[BaseModel], str]] = collection_class
 
     @property
@@ -260,7 +261,9 @@ class DirectusRequest:
 
         return f"{self.collection}_{id}_{method}_{query_str}"
 
-    async def create(self, items: Union[dict, List[dict]], as_task: bool = False) -> DirectusResponse:
+    async def create(
+            self, items: Union[Dict[Any, Any], List[Dict[Any, Any]]], as_task: bool = False
+    ) -> DirectusResponse:
         assert isinstance(items, (dict, list))
 
         response = self.directus.connection.post(self.uri, json=items, auth=self.directus.auth)
@@ -275,12 +278,15 @@ class DirectusRequest:
         return d_response
 
     @overload
-    async def update(self, ids: Optional[Union[UUID, int, str]], items: dict,
-                     as_task: bool = False) -> DirectusResponse:
+    async def update(
+            self, ids: Optional[Union[UUID, int, str]], items: Dict[Any, Any], as_task: bool = False
+    ) -> DirectusResponse:
         ...
 
     @overload
-    async def update(self, ids: List[Union[UUID, int, str]], items: list, as_task: bool = False) -> DirectusResponse:
+    async def update(
+            self, ids: List[Union[UUID, int, str]], items: List[Any], as_task: bool = False
+    ) -> DirectusResponse:
         ...
 
     async def update(self, ids, items, as_task: bool = False) -> DirectusResponse:
@@ -313,8 +319,9 @@ class DirectusRequest:
 
         return d_response
 
-    async def delete(self, ids: Union[UUID, int, str, List[Union[UUID, int, str]]],
-                     as_task: bool = False) -> DirectusResponse:
+    async def delete(
+            self, ids: Union[UUID, int, str, List[Union[UUID, int, str]]], as_task: bool = False
+    ) -> DirectusResponse:
         if isinstance(ids, (UUID, int, str)):
             response = self.directus.connection.delete(f'{self.uri}/{ids}', auth=self.directus.auth)
             d_response = DirectusResponse(response, collection=self.collection_class)

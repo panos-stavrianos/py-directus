@@ -1,11 +1,15 @@
+import os
+import re
 import asyncio
 import datetime
 import inspect
-import os
-import re
 from io import BytesIO
 # import aiofiles
-from typing import Union, Optional, Type, List, Tuple
+from typing import (
+    TYPE_CHECKING, 
+    Union, Optional, 
+    Type, Any, List, Dict, Tuple
+)
 
 import magic
 from httpx import AsyncClient, Auth, Response
@@ -127,11 +131,29 @@ class Directus:
         return response_obj
 
     @classmethod
-    def get_file_url(cls, file_id: str, img_format: Optional[str] = None, **kwargs) -> str:
+    def get_file_url(
+            cls, file_id: str, 
+            fit: Optional[str] = None,
+            width: Optional[int] = None, height: Optional[int] = None,
+            quality: Optional[int] = None,
+            withoutEnlargement: Optional[bool] = None,
+            img_format: Optional[str] = None,
+            **kwargs
+    ) -> str:
+        """
+        Generate endpoint for a specific file with transformation parameters.
+
+        :param file_id: UUID of the file record in Directus.
+        """
         url = f"{py_directus.directus_url}/assets/{file_id}"
 
         # Image transformation parameters
         img_transform_parameters = ImageFileTransform(
+            fit=fit,
+            width=width,
+            height=height,
+            quality=quality,
+            withoutEnlargement=withoutEnlargement,
             img_format=img_format,
             **kwargs
         ).parameters
@@ -188,6 +210,12 @@ class Directus:
         return response
 
     async def upload_file(self, to_upload: Union[str, 'UploadFile'], folder: str = None) -> DirectusResponse:
+        """
+        Upload a file to Directus.
+
+        :param to_upload: full path to file as a string or a `starlette.UploadFile` object.
+        :param folder: (optional) name of a `directus_folder` collection record.
+        """
         url = f"{self.url}/files"
 
         folder_id = None
@@ -219,7 +247,6 @@ class Directus:
             files = {
                 "file": (to_upload.filename, BytesIO(await to_upload.read()), to_upload.content_type)
             }
-
         else:
             raise TypeError("The `to_upload` argument must be either a string or a `fastapi.UploadFile` instance.")
 
@@ -264,6 +291,11 @@ class Directus:
         return response_obj
 
     async def read_settings(self) -> DirectusResponse:
+        """
+        Retrieve Directus settings.
+
+        NOTE: Old logic syntax (self.collection)
+        """
         collection_name = py_directus.DirectusSettings.model_config.get("collection", None)
 
         assert collection_name is not None
@@ -271,7 +303,12 @@ class Directus:
         response_obj = await DirectusRequest(self, collection_name).read(method='get')
         return response_obj
 
-    async def update_settings(self, data) -> DirectusResponse:
+    async def update_settings(self, data: Dict[Any, Any]) -> DirectusResponse:
+        """
+        Change Directus settings.
+        
+        NOTE: Old logic syntax (self.collection)
+        """
         collection_name = py_directus.DirectusSettings.model_config.get("collection", None)
 
         assert collection_name is not None
@@ -339,7 +376,7 @@ class Directus:
 
     async def clear_cache(self, clear_all: bool = False):
         """
-        Clear cache:
+        Clear cache.
 
         :param clear_all: If set to `True`, absolutely ALL records will be deleted.
         """

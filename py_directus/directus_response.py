@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import inspect
 import json as jsonlib
-from typing import Any, Union, Optional, TypeVar, List, Coroutine
+from typing import (
+    Union, Optional, 
+    TypeVar, Any, List, Dict, Coroutine
+)
 
 try:
     from rich import print  # noqa
@@ -24,13 +27,16 @@ RESOLUTION_EXCEPTION_MESSAGE = (
 class DirectusResponse:
     T = TypeVar("T", bound=BaseModel)
 
-    def __init__(self, response: Union[Response, Coroutine, None] = None, query: dict = None, collection: Any = None):
+    def __init__(
+            self, response: Union[Response, Coroutine, None] = None, query: Dict[Any, Any] = None, 
+            collection: Any = None
+    ):
         self.response: Optional[Union[Response, Coroutine]] = response
         
         self.response_status: Optional[int] = None
-        self.query: dict = query
+        self.query: Dict[Any, Any] = query
         self.collection: Any = collection
-        self.json: Optional[dict] = {}
+        self.json: Optional[Dict[Any, Any]] = {}
         self.is_resolved: bool = False
 
         self.parse_response()
@@ -60,7 +66,7 @@ class DirectusResponse:
             self.response = await self.response
             self.parse_response()
 
-    def _parse_item_as_dict(self) -> dict:
+    def _parse_item_as_dict(self) -> Dict[Any, Any]:
         if isinstance(self.json['data'], list):
             return self.json['data'][0]
         return self.json['data']
@@ -68,7 +74,7 @@ class DirectusResponse:
     def _parse_item_as_object(self, collection: T) -> T:
         return collection(**self._parse_item_as_dict())
 
-    def _parse_items_as_dict(self) -> List[dict]:
+    def _parse_items_as_dict(self) -> List[Dict[Any, Any]]:
         if isinstance(self.json['data'], list):
             return self.json['data']
         return [self.json['data']]
@@ -78,7 +84,7 @@ class DirectusResponse:
         return TypeAdapter(List[collection]).validate_python(items_data)
 
     @property
-    def item(self) -> Union[dict[Any, Any], Any, None]:  # noqa
+    def item(self) -> Union[Dict[Any, Any], Any, None]:  # noqa
         assert self.is_resolved, RESOLUTION_EXCEPTION_MESSAGE
 
         if "data" not in self.json or self.json['data'] in [None, [], {}]:
@@ -93,7 +99,7 @@ class DirectusResponse:
         item_data = self._parse_item_as_dict()
         return None if item_data is None else collection(**item_data)
 
-    def item_as_dict(self) -> Union[dict, None]:  # noqa
+    def item_as_dict(self) -> Union[Dict[Any, Any], None]:  # noqa
         assert self.is_resolved, RESOLUTION_EXCEPTION_MESSAGE
 
         if "data" not in self.json or self.json['data'] in [None, [], {}]:
@@ -101,7 +107,7 @@ class DirectusResponse:
         return self._parse_item_as_dict()
 
     @property
-    def items(self) -> Union[List[dict[Any, Any]], Any, None]:  # noqa
+    def items(self) -> Union[List[Dict[Any, Any]], Any, None]:  # noqa
         assert self.is_resolved, RESOLUTION_EXCEPTION_MESSAGE
 
         if "data" not in self.json or self.json['data'] in [None, [], {}]:
@@ -116,7 +122,7 @@ class DirectusResponse:
         items_data = self._parse_items_as_dict()
         return None if items_data is None else TypeAdapter(List[collection]).validate_python(items_data)
 
-    def items_as_dict(self) -> Union[List[dict], None]:  # noqa
+    def items_as_dict(self) -> Union[List[Dict[Any, Any]], None]:  # noqa
         assert self.is_resolved, RESOLUTION_EXCEPTION_MESSAGE
 
         if "data" not in self.json or self.json['data'] in [None, [], {}]:
@@ -187,7 +193,7 @@ class DirectusResponse:
 
         return new_obj
 
-    def get_explanation(self, show_headers=True, show_cookies=True) -> dict:
+    def get_explanation(self, show_headers=True, show_cookies=True) -> Dict[Any, Any]:
         needed_data = {}
 
         ''' Query '''
