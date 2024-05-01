@@ -4,7 +4,7 @@ import asyncio
 import json as jsonlib
 from typing import (
     TYPE_CHECKING,
-    Union, Optional, 
+    Union, Optional,
     Type, Any, List, Dict, Tuple,
     overload
 )
@@ -12,11 +12,10 @@ from uuid import UUID
 
 import json_fix
 import websockets
-from pydantic import BaseModel
-
 from py_directus.aggregator import Agg
 from py_directus.directus_response import DirectusResponse
 from py_directus.filter import F
+from pydantic import BaseModel
 
 # from py_directus.operators import AggregationOperators
 
@@ -167,7 +166,7 @@ class DirectusRequest:
 
         :return: The DirectusResponse object
 
-        IMPORTANT: cache and as_task cannot be used together, if both are set to True, 
+        IMPORTANT: cache and as_task cannot be used together, if both are set to True,
                    the cache will take precedence and the request will be awaited.
         """
 
@@ -285,18 +284,18 @@ class DirectusRequest:
 
     @overload
     async def update(
-            self, ids: List[Union[UUID, int, str]], items: List[Any], as_task: bool = False
+            self, ids: List[Union[UUID, int, str]], items: Union[List[Any], Dict[Any, Any]], as_task: bool = False
     ) -> DirectusResponse:
         ...
 
     async def update(self, ids, items, as_task: bool = False) -> DirectusResponse:
-        if isinstance(ids, (UUID, int, str, None)) and isinstance(items, dict):
+        if isinstance(ids, Union[UUID, int, str, None]) and isinstance(items, dict):
             if ids is None:
                 response = self.directus.connection.patch(self.uri, json=items, auth=self.directus.auth)
             else:
                 response = self.directus.connection.patch(f"{self.uri}/{ids}", json=items, auth=self.directus.auth)
             d_response = DirectusResponse(response, collection=self.collection_class)
-        elif isinstance(ids, list) and isinstance(items, list):
+        elif isinstance(ids, list):
             payload = {
                 "keys": ids,
                 "data": items

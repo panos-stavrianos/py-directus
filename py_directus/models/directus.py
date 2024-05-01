@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from enum import Enum
-from uuid import UUID
 from typing import Optional, Union, List, Pattern
 
 from pydantic import Json
@@ -10,23 +9,22 @@ from pydantic.main import BaseModel
 from .base import DirectusModel, DirectusConfigDict
 from .types import ModelDateTime
 
-
 __all__ = [
-    'BaseDirectusActivity', 
-    'BaseDirectusRevision', 
-    'BaseDirectusRoles', 
-    'BaseDirectusRole', 
-    'BaseDirectusUser', 
-    'BaseDirectusFile', 
-    'BaseDirectusFolder', 
-    'BaseDirectusPermission', 
-    'BaseDirectusRelationSchema', 
-    'BaseDirectusRelationMeta', 
-    'BaseDirectusRelation', 
-    'BaseDirectusSettings', 
-    'BaseDirectusTranslation', 
-    'BaseDirectusVersion', 
-    'BaseDirectusModels', 
+    'BaseDirectusActivity',
+    'BaseDirectusRevision',
+    'BaseDirectusRoles',
+    'BaseDirectusRole',
+    'BaseDirectusUser',
+    'BaseDirectusFile',
+    'BaseDirectusFolder',
+    'BaseDirectusPermission',
+    'BaseDirectusRelationSchema',
+    'BaseDirectusRelationMeta',
+    'BaseDirectusRelation',
+    'BaseDirectusSettings',
+    'BaseDirectusTranslation',
+    'BaseDirectusVersion',
+    'BaseDirectusModels',
     'directus_model_settings'
 ]
 
@@ -75,7 +73,7 @@ class BaseDirectusRole(DirectusModel):
     """
     model_config = DirectusConfigDict(collection="directus_roles")
 
-    id: Optional[UUID] = None
+    id: Optional[str] = None
     name: Optional[str] = None
     icon: Optional[str] = None
     description: Optional[str] = None
@@ -88,7 +86,7 @@ class BaseDirectusUser(DirectusModel):
     """
     model_config = DirectusConfigDict(collection="directus_users")
 
-    id: Optional[UUID] = None
+    id: Optional[str] = None
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     avatar: Optional[str] = None
@@ -107,7 +105,7 @@ class BaseDirectusFile(DirectusModel):
     """
     model_config = DirectusConfigDict(collection="directus_files")
 
-    id: Optional[UUID] = None
+    id: Optional[str] = None
     storage: Optional[str] = None
     filename_disk: Optional[str] = None
     filename_download: Optional[str] = None
@@ -133,8 +131,8 @@ class BaseDirectusFolder(DirectusModel):
     Directus folder model.
     """
     model_config = DirectusConfigDict(collection="directus_folders")
-    
-    id: Optional[UUID] = None
+
+    id: Optional[str] = None
     name: Optional[str] = None
     parent: Optional[Union[str, 'directus_model_settings.DirectusFolder']] = None
 
@@ -145,7 +143,7 @@ class BaseDirectusPermission(DirectusModel):
     """
     model_config = DirectusConfigDict(collection="directus_permissions")
 
-    id: Optional[UUID] = None
+    id: Optional[str] = None
     role: Optional[Union[str, 'directus_model_settings.DirectusRole']] = None
     collection: Optional[str] = None
     action: Optional[str] = None
@@ -203,7 +201,7 @@ class BaseDirectusSettings(DirectusModel):
     """
     model_config = DirectusConfigDict(collection="directus_settings")
 
-    id: Optional[UUID] = None
+    id: Optional[str] = None
     project_name: Optional[str] = None
     project_descriptor: Optional[str] = None
     project_url: Optional[str] = None
@@ -223,7 +221,7 @@ class BaseDirectusSettings(DirectusModel):
     storage_asset_transform: Optional[str] = None
     storage_asset_presets: Optional[List[dict]] = None
     custom_css: Optional[str] = None
-    storage_default_folder: Optional[UUID] = None
+    storage_default_folder: Optional[str] = None
     basemaps: Optional[List[dict]] = None
     mapbox_key: Optional[str] = None
     module_bar: Optional[List[dict]] = None
@@ -235,8 +233,8 @@ class BaseDirectusTranslation(DirectusModel):
     Directus custom translation model.
     """
     model_config = DirectusConfigDict(collection="directus_translations")
-    
-    id: Optional[UUID] = None
+
+    id: Optional[str] = None
     key: Optional[str] = None
     language: Optional[str] = None
     value: Optional[str] = None
@@ -247,8 +245,8 @@ class BaseDirectusVersion(DirectusModel):
     Directus version model.
     """
     model_config = DirectusConfigDict(collection="directus_versions")
-    
-    id: Optional[UUID] = None
+
+    id: Optional[str] = None
     key: Optional[str] = None
     name: Optional[str] = None
     collection: Optional[str] = None
