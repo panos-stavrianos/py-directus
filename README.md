@@ -31,7 +31,7 @@ Dependencies:
 
 > Directus API:
 > This library interacts with the [Directus API](https://docs.directus.io/reference/introduction.html).
-> 
+>
 > To make the most of this library, it is highly recommended to familiarize yourself with the Directus API documentation. Understanding the API's capabilities and endpoints will help you effectively utilize this library for seamless integration with Directus.
 
 ## Installation
@@ -42,11 +42,18 @@ You can install the library directly from [pypi](https://pypi.org/project/py-dir
 $ pip install py-directus
 ```
 
-> FastAPI support requires additional dependencies installation. 
+> FastAPI support requires additional dependencies installation.
 > You can install them along others like this:
 
 ```shell
 $ pip install py-directus[FastAPI]
+```
+
+> Windows and potentially other OSes requires additional dependencies such as
+> lib-magic-bin. You can install them by using:
+
+```shell
+$ pip install py-directus[Windows]
 ```
 
 ## Authentication and Session Handling
@@ -195,7 +202,7 @@ from py_directus import F
 
 await directus.collection("directus_users")
 .filter(
-    (F(first_name="John") | F(first_name="Jane")) 
+    (F(first_name="John") | F(first_name="Jane"))
     & F(last_name="Doe")
 ).read()
 ```

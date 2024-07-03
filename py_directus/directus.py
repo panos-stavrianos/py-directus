@@ -6,8 +6,8 @@ import inspect
 from io import BytesIO
 # import aiofiles
 from typing import (
-    TYPE_CHECKING, 
-    Union, Optional, 
+    TYPE_CHECKING,
+    Union, Optional,
     Type, Any, List, Dict, Tuple
 )
 
@@ -132,7 +132,7 @@ class Directus:
 
     @classmethod
     def get_file_url(
-            cls, file_id: str, 
+            cls, file_id: str,
             fit: Optional[str] = None,
             width: Optional[int] = None, height: Optional[int] = None,
             quality: Optional[int] = None,
@@ -231,7 +231,14 @@ class Directus:
         if isinstance(to_upload, str):
             # file name with extension
             file_name = os.path.basename(to_upload)
-            file_mime = magic.from_file(to_upload, mime=True)
+
+            # magic binary might not be installed on some OSes
+            try:
+                file_mime = magic.Magic(mime=True).from_file(to_upload)
+            except Exception as e:
+                print(f"Magic not working: {e}")
+                print("Some OSes like Windows requires to install magic binary to work.")
+                print("try: pip install py-directus[Windows]")
 
             data = {
                 "title": os.path.splitext(file_name)[0],
@@ -306,7 +313,7 @@ class Directus:
     async def update_settings(self, data: Dict[Any, Any]) -> DirectusResponse:
         """
         Change Directus settings.
-        
+
         NOTE: Old logic syntax (self.collection)
         """
         collection_name = py_directus.DirectusSettings.model_config.get("collection", None)
