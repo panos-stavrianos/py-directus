@@ -93,6 +93,19 @@ class Directus:
         await asyncio.gather(*[task.gather_response() for task in self.tasks])
         self.tasks.clear()
 
+
+    async def list_collections(self) -> List[Dict[str, Any]]:
+        """
+        Return the list of collections in the Directus instance.
+
+        see: https://docs.directus.io/reference/system/collections.html#the-collection-object
+
+        """
+        url = f"{self.url}/collections"
+        response = await self.connection.get(url, auth=self.auth)
+        return response.json()['data']
+
+
     def collection(self, collection: Union[Type[BaseModel], str]) -> DirectusRequest:
         """
         Set collection to be used.
