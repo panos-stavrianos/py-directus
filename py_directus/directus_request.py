@@ -155,7 +155,7 @@ class DirectusRequest:
             return {}
         return response.json()['data']['meta']
 
-    async def fields(self) -> dict[str, Any]:
+    async def fields_list(self) -> dict[str, Any]:
         url = f"{self.directus.url}/fields/{self.collection}"
 
         response = await self.directus.connection.get(url, auth=self.directus.auth)

@@ -362,7 +362,7 @@ calls:
 
 ```python
 metadata = await directus.collection(collection).metadata()
-fields = await directus.collection(collection).fields()
+fields = await directus.collection(collection).fields_list()
 ```
 
 This is useful for example to check schema consistency.

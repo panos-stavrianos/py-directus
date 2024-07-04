@@ -226,12 +226,16 @@ class Directus:
 
         return response
 
-    async def upload_file(self, to_upload: Union[str, 'UploadFile'], folder: str = None) -> DirectusResponse:
+    async def upload_file(self, to_upload: Union[str, 'UploadFile'],
+                          folder: str = "", title: str ="",
+                          filename_download: str ="") -> DirectusResponse:
         """
         Upload a file to Directus.
 
         :param to_upload: full path to file as a string or a `starlette.UploadFile` object.
         :param folder: (optional) name of a `directus_folder` collection record.
+        :param title: (optional) specify the file Title. If not provided, the file name will be used.
+        :param filename_download: (optional) specify the file name for download. If not provided, the file name will be used.
         """
         url = f"{self.url}/files"
 
@@ -257,17 +261,24 @@ class Directus:
                 print("Some OSes like Windows requires to install magic binary to work.")
                 print("try: pip install py-directus[Windows]")
 
-            data = {
-                "title": os.path.splitext(file_name)[0],
-            }
+            # metadata
+            data = {"title": title or os.path.splitext(file_name)[0] }
+            if filename_download:
+                data["filename_download"] = filename_download
+
             f = open(to_upload, 'rb')
             files = {
                 "file": (file_name, f, file_mime)
             }
+
         elif isinstance(to_upload, UploadFile):
+            # metadata
             data = {
-                "title": os.path.splitext(to_upload.filename)[0],
+                "title": title or os.path.splitext(to_upload.filename)[0],
             }
+            if filename_download:
+                data["filename_download"] = filename_download
+
             files = {
                 "file": (to_upload.filename, BytesIO(await to_upload.read()), to_upload.content_type)
             }
