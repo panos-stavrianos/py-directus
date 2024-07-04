@@ -6,8 +6,8 @@ import inspect
 from io import BytesIO
 # import aiofiles
 from typing import (
-    TYPE_CHECKING, 
-    Union, Optional, 
+    TYPE_CHECKING,
+    Union, Optional,
     Type, Any, List, Dict, Tuple
 )
 
@@ -91,7 +91,24 @@ class Directus:
         """
         print("Gathering tasks", self.tasks)
         await asyncio.gather(*[task.gather_response() for task in self.tasks])
-        self.tasks.clear()
+        self.tasks.clear()['data']
+
+    async def clear_cache(self):
+        "Clear directus cache"
+        url = f"{self.url}/utils/cache/clear"
+        await self.connection.get(url, auth=self.auth)
+
+    async def list_collections(self) -> List[Dict[str, Any]]:
+        """
+        Return the list of collections in the Directus instance.
+
+        see: https://docs.directus.io/reference/system/collections.html#the-collection-object
+
+        """
+        url = f"{self.url}/collections"
+        response = await self.connection.get(url, auth=self.auth)
+        return response.json()['data']
+
 
     def collection(self, collection: Union[Type[BaseModel], str]) -> DirectusRequest:
         """
@@ -132,7 +149,7 @@ class Directus:
 
     @classmethod
     def get_file_url(
-            cls, file_id: str, 
+            cls, file_id: str,
             fit: Optional[str] = None,
             width: Optional[int] = None, height: Optional[int] = None,
             quality: Optional[int] = None,
@@ -209,12 +226,16 @@ class Directus:
 
         return response
 
-    async def upload_file(self, to_upload: Union[str, 'UploadFile'], folder: str = None) -> DirectusResponse:
+    async def upload_file(self, to_upload: Union[str, 'UploadFile'],
+                          folder: str = "", title: str ="",
+                          filename_download: str ="") -> DirectusResponse:
         """
         Upload a file to Directus.
 
         :param to_upload: full path to file as a string or a `starlette.UploadFile` object.
         :param folder: (optional) name of a `directus_folder` collection record.
+        :param title: (optional) specify the file Title. If not provided, the file name will be used.
+        :param filename_download: (optional) specify the file name for download. If not provided, the file name will be used.
         """
         url = f"{self.url}/files"
 
@@ -231,19 +252,33 @@ class Directus:
         if isinstance(to_upload, str):
             # file name with extension
             file_name = os.path.basename(to_upload)
-            file_mime = magic.from_file(to_upload, mime=True)
 
-            data = {
-                "title": os.path.splitext(file_name)[0],
-            }
+            # magic binary might not be installed on some OSes
+            try:
+                file_mime = magic.Magic(mime=True).from_file(to_upload)
+            except Exception as e:
+                print(f"Magic not working: {e}")
+                print("Some OSes like Windows requires to install magic binary to work.")
+                print("try: pip install py-directus[Windows]")
+
+            # metadata
+            data = {"title": title or os.path.splitext(file_name)[0] }
+            if filename_download:
+                data["filename_download"] = filename_download
+
             f = open(to_upload, 'rb')
             files = {
                 "file": (file_name, f, file_mime)
             }
+
         elif isinstance(to_upload, UploadFile):
+            # metadata
             data = {
-                "title": os.path.splitext(to_upload.filename)[0],
+                "title": title or os.path.splitext(to_upload.filename)[0],
             }
+            if filename_download:
+                data["filename_download"] = filename_download
+
             files = {
                 "file": (to_upload.filename, BytesIO(await to_upload.read()), to_upload.content_type)
             }
@@ -306,7 +341,7 @@ class Directus:
     async def update_settings(self, data: Dict[Any, Any]) -> DirectusResponse:
         """
         Change Directus settings.
-        
+
         NOTE: Old logic syntax (self.collection)
         """
         collection_name = py_directus.DirectusSettings.model_config.get("collection", None)

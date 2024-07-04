@@ -7,13 +7,16 @@ from setuptools import setup, find_packages
 with open('requirements.txt') as requirements_file:
     requirements = requirements_file.readlines()
 
-with open('fastapi_requirements.txt') as fastapi_requirements_file:
+with open('requirements_fastapi.txt') as fastapi_requirements_file:
     fastapi_requirements = fastapi_requirements_file.readlines()
+
+with open('requirements_windows.txt') as windows_requirements_file:
+    windows_requirements = windows_requirements_file.readlines()
 
 readme = Path('README.md').read_text()
 version = '{{VERSION_PLACEHOLDER}}'
 if "VERSION_PLACEHOLDER" in version:
-    version = '0.0.43'
+    version = '0.0.44'
 setup(
     author="Panos Stavrianos",
     author_email='panos@orbitsystems.gr',
@@ -24,6 +27,7 @@ setup(
     install_requires=requirements,
     extras_require={
         "FastAPI": fastapi_requirements,
+        "Windows": windows_requirements,
     },
     license="MIT license",
     include_package_data=True,

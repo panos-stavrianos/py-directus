@@ -31,7 +31,7 @@ Dependencies:
 
 > Directus API:
 > This library interacts with the [Directus API](https://docs.directus.io/reference/introduction.html).
-> 
+>
 > To make the most of this library, it is highly recommended to familiarize yourself with the Directus API documentation. Understanding the API's capabilities and endpoints will help you effectively utilize this library for seamless integration with Directus.
 
 ## Installation
@@ -42,11 +42,18 @@ You can install the library directly from [pypi](https://pypi.org/project/py-dir
 $ pip install py-directus
 ```
 
-> FastAPI support requires additional dependencies installation. 
+> FastAPI support requires additional dependencies installation.
 > You can install them along others like this:
 
 ```shell
 $ pip install py-directus[FastAPI]
+```
+
+> Windows and potentially other OSes requires additional dependencies such as
+> lib-magic-bin. You can install them by using:
+
+```shell
+$ pip install py-directus[Windows]
 ```
 
 ## Authentication and Session Handling
@@ -195,7 +202,7 @@ from py_directus import F
 
 await directus.collection("directus_users")
 .filter(
-    (F(first_name="John") | F(first_name="Jane")) 
+    (F(first_name="John") | F(first_name="Jane"))
     & F(last_name="Doe")
 ).read()
 ```
@@ -314,6 +321,16 @@ await directus.collection("directus_users").include_count().read()
 
 ## CRUD
 
+### Retrieving collections
+You can list available collection as follow. This call returns
+a list that contains the (https://docs.directus.io/reference/system/collections.html#the-collection-object)[collection name alongside their metadata].
+
+```python
+collections = await directus.list_collections()
+print(collections)
+```
+
+
 ### Retrieving items
 
 After you call `read()` you get a `DirectusResponse` object which contains the data.
@@ -336,6 +353,20 @@ response = await directus.collection(User).read()
 print(response.item.first_name)
 print(response.items)
 ```
+
+
+### Retrieving metadata
+
+You can retrieve a collection metadata and fields by using the following API
+calls:
+
+```python
+metadata = await directus.collection(collection).metadata()
+fields = await directus.collection(collection).fields_list()
+```
+
+This is useful for example to check schema consistency.
+
 
 ### Converting to Models (pydantic) or to Dictionary
 
@@ -410,6 +441,14 @@ await directus.collection("directus_users").delete([1, 2])
 ```
 
 > Supporting `Pydantic` models for `create`/`update`/`delete` item operations is shortly coming.
+
+## Directus management
+
+You can force clear directus cache by using
+
+```python
+await directus.clear_cache()
+```
 
 ## Examples
 
