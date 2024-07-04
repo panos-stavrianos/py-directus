@@ -321,6 +321,15 @@ await directus.collection("directus_users").include_count().read()
 
 ## CRUD
 
+### Retrieving collections
+You can list available collection as follow. This call returns
+a list that contains the (https://docs.directus.io/reference/system/collections.html#the-collection-object)[collection name alongside their metadata].
+
+```python
+collections = await directus.list_collections()
+print(collections)
+```
+
 ### Retrieving items
 
 After you call `read()` you get a `DirectusResponse` object which contains the data.
@@ -343,6 +352,20 @@ response = await directus.collection(User).read()
 print(response.item.first_name)
 print(response.items)
 ```
+
+
+### Retrieving metadata
+
+You can retrieve a collection metadata and fields by using the following API
+calls:
+
+```python
+metadata = await directus.collection(collection).metadata()
+fields = await directus.collection(collection).fields()
+```
+
+This is useful for example to check schema consistency.
+
 
 ### Converting to Models (pydantic) or to Dictionary
 
@@ -417,6 +440,14 @@ await directus.collection("directus_users").delete([1, 2])
 ```
 
 > Supporting `Pydantic` models for `create`/`update`/`delete` item operations is shortly coming.
+
+## Directus management
+
+You can force clear directus cache by using
+
+```python
+await directus.clear_cache()
+```
 
 ## Examples
 

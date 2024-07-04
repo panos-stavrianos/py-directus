@@ -91,7 +91,24 @@ class Directus:
         """
         print("Gathering tasks", self.tasks)
         await asyncio.gather(*[task.gather_response() for task in self.tasks])
-        self.tasks.clear()
+        self.tasks.clear()['data']
+
+    async def clear_cache(self):
+        "Clear directus cache"
+        url = f"{self.url}/utils/cache/clear"
+        await self.connection.get(url, auth=self.auth)
+
+    async def list_collections(self) -> List[Dict[str, Any]]:
+        """
+        Return the list of collections in the Directus instance.
+
+        see: https://docs.directus.io/reference/system/collections.html#the-collection-object
+
+        """
+        url = f"{self.url}/collections"
+        response = await self.connection.get(url, auth=self.auth)
+        return response.json()['data']
+
 
     def collection(self, collection: Union[Type[BaseModel], str]) -> DirectusRequest:
         """

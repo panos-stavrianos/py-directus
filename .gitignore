@@ -5,6 +5,7 @@ venv/
 .backups/
 build/
 dist/
+save/
 py_directus.egg-info/
 # Cache
 __pycache__/

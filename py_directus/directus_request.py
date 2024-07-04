@@ -1,21 +1,18 @@
 from __future__ import annotations
-
+import logging
 import asyncio
 import json as jsonlib
-from typing import (
-    TYPE_CHECKING,
-    Union, Optional,
-    Type, Any, List, Dict, Tuple,
-    overload
-)
+from typing import TYPE_CHECKING, Union, Optional, Type, Any, List, Dict
+from typing import Tuple, overload
 from uuid import UUID
 
 import json_fix
 import websockets
+from pydantic import BaseModel
 from py_directus.aggregator import Agg
 from py_directus.directus_response import DirectusResponse
 from py_directus.filter import F
-from pydantic import BaseModel
+
 
 # from py_directus.operators import AggregationOperators
 
@@ -146,6 +143,27 @@ class DirectusRequest:
     def group_by(self, *fields):
         self.params['groupBy'] = ",".join(fields)
         return self
+
+    async def metadata(self) -> dict[str, Any]:
+        "Get collection info"
+        url = f"{self.directus.url}/collections/{self.collection}"
+
+        response = await self.directus.connection.get(url, auth=self.directus.auth)
+        jdata = response.json()
+        if 'data' not in jdata and 'meta' not in jdata['data']:
+            logging.warning(f"Metadata not found for collection: {self.collection} - wrong collection name?")
+            return {}
+        return response.json()['data']['meta']
+
+    async def fields(self) -> dict[str, Any]:
+        url = f"{self.directus.url}/fields/{self.collection}"
+
+        response = await self.directus.connection.get(url, auth=self.directus.auth)
+        jdata = response.json()
+        if 'data' not in jdata:
+            logging.warning(f"Fields not found for collection: {self.collection} - wrong collection name?")
+            return {}
+        return jdata['data']
 
     def include_count(self):
         # NOTE: DEPRECATED, USE AGGREGATION INSTEAD
