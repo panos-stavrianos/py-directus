@@ -321,15 +321,6 @@ await directus.collection("directus_users").include_count().read()
 
 ## CRUD
 
-### Retrieving collections
-You can list available collection as follow. This call returns
-a list that contains the (https://docs.directus.io/reference/system/collections.html#the-collection-object)[collection name alongside their metadata].
-
-```python
-collections = await directus.list_collections()
-print(collections)
-```
-
 ### Retrieving items
 
 After you call `read()` you get a `DirectusResponse` object which contains the data.
