@@ -1,3 +1,5 @@
+# This project is on hold for now due to time constraints.
+
 # py-directus
 
 ## Disclaimer: Under development
